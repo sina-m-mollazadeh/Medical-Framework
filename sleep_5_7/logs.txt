@@ -1,0 +1,19 @@
+6 Features named Index(['Glucose', 'Sex', 'TG', 'hs_CRP', 'SBP', 'Age'], dtype='object') selected out of 19 
+
+
+Column Scores:array([1.17577709, 2.00884613, 2.22575597, 3.26493176, 1.79878991,
+       1.79573114, 1.01913961, 2.37651343, 1.58229052, 1.56211648,
+       1.33574911, 1.81622857, 3.51383128, 0.9999419 , 1.07733936,
+       2.53456824, 0.71831875, 2.54260761, 1.13818607])
+
+
+Model Config:LogisticRegression(C=0.001, class_weight='balanced', l1_ratio=0, max_iter=1000,
+                   penalty='l1', solver='saga')
+
+Final_Acc:0.4548590893210667
+
+clean:drop_rows
+outlier:IQR
+norm:MinMaxScalarNorm
+feature:L1_Based
+model:LogisticRegression

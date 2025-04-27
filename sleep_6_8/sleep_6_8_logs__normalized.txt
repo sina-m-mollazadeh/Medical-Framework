@@ -1,0 +1,21 @@
+14 Features named Index(['Age', 'Glucose', 'GFR', 'Sex', 'DBP', 'SBP', 'FileNo', 'hs_CRP', 'PAB',
+       'TG', 'Smoking_Status', 'PAL', 'Uric_Acid', 'LDL'],
+      dtype='object') selected out of 20 
+
+Column Scores:
+[1.52364523, 3.53336373, 1.81616347, 1.25844802, 0.70698822, 0.70915531,
+ 1.62362922, 1.69003584, 0.8964644 , 0.89282748, 1.00544717, 2.07730246,
+ 1.06489349, 0.81763573, 1.49481306, 0.50366606, 1.30142978, 1.15324557,
+ 1.4139755 , 1.83442449]
+
+Model Config:
+LGBMClassifier(class_weight='balanced', n_estimators=200, num_leaves=63,
+               random_state=42, verbose=-1)
+
+Final_Acc: 0.7567435942435942
+
+clean: impute_class_median
+outlier: IQR
+norm: MinMaxScalarNorm
+feature: L1_Based
+model: LightGBM

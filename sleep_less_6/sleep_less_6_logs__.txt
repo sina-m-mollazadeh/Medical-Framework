@@ -1,0 +1,31 @@
+13 Features named Index(['FileNo', 'Glucose', 'PAB', 'HDL', 'TG', 'GFR', 'WC', 'DBP', 'SBP',
+       'LDL', 'BMI', 'hs_CRP', 'Cholesterol'],
+      dtype='object') selected out of 20 
+
+Column Scores:
+[2.10737686e+00, 6.74164541e-01, 3.24101066e-02, 1.58226841e-08,
+ 8.41042089e-01, 1.05653902e+00, 9.24684408e-01, 9.53567040e-01,
+ 4.87468164e-01, 5.23685056e-01, 8.42852495e-01, 2.07507913e+00,
+ 3.25802477e-01, 7.21048396e-01, 7.73907462e-01, 1.17872119e+00,
+ 1.12718157e+00, 3.28548439e-01, 1.18752008e+00, 1.06468841e+00]
+
+Model Config:
+XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=None, device=None, early_stopping_rounds=None,
+              enable_categorical=False, eval_metric='mlogloss',
+              feature_types=None, gamma=None, grow_policy=None,
+              importance_type=None, interaction_constraints=None,
+              learning_rate=0.2, max_bin=None, max_cat_threshold=None,
+              max_cat_to_onehot=None, max_delta_step=None, max_depth=10,
+              max_leaves=None, min_child_weight=None, missing=nan,
+              monotone_constraints=None, multi_strategy=None, n_estimators=100,
+              n_jobs=None, num_parallel_tree=None, random_state=None, ...)
+
+Final_Acc: 0.4764204545454545
+
+clean: drop_rows
+outlier: iNNe
+norm: Not Normalized
+feature: SelectK
+model: XGBoost

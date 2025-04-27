@@ -1,0 +1,22 @@
+20 Features named Index(['Glucose', 'FileNo', 'Smoking_Status', 'Sex', 'PAL', 'WC', 'PAB', 'BMI',
+       'Age', 'hs_CRP', 'Uric_Acid', 'DepressionScore', 'TG', 'AnxietyScore',
+       'SBP', 'DBP', 'LDL', 'GFR', 'HDL', 'Cholesterol'],
+      dtype='object') selected out of 20 
+
+Column Scores:
+[1.66812422, 0.87260127, 1.29427097, 1.5431612 , 0.97465848, 1.21256093,
+ 0.66137375, 0.65022826, 0.68632593, 0.71581491, 0.58533636, 2.70801146,
+ 0.73032673, 0.40498173, 0.80488093, 0.51578815, 0.69778342, 1.25041524,
+ 1.05010159, 0.54676503]
+
+Model Config:
+LGBMClassifier(class_weight='balanced', n_estimators=200, num_leaves=63,
+               random_state=42, verbose=-1)
+
+Final_Acc: 0.44821511821511817
+
+clean: drop_rows
+outlier: iNNe
+norm: MinMaxScalarNorm
+feature: TreeBased
+model: LightGBM

@@ -1,19 +1,19 @@
-16 Features named Index(['Glucose', 'Age', 'SBP', 'TG', 'hs_CRP', 'Sex', 'PAB', 'GFR',
-       'Smoking_Status', 'Uric_Acid', 'AnxietyScore', 'PAL', 'LDL', 'DBP',
-       'FileNo', 'DepressionScore'],
+15 Features named Index(['Glucose', 'Age', 'SBP', 'TG', 'Sex', 'hs_CRP', 'GFR', 'PAB',
+       'Smoking_Status', 'Uric_Acid', 'AnxietyScore', 'PAL', 'DBP', 'LDL',
+       'FileNo'],
       dtype='object') selected out of 21 
 
 Column Scores:
-[1.19104707, 2.88997155, 1.58434728, 1.44556595, 0.89966406, 0.74382378,
- 2.08871402, 1.2337973 , 1.37870598, 0.98849251, 1.24663531, 3.49025504,
- 1.43184263, 0.75418485, 1.63796917, 0.67651078, 1.86952018, 1.24688151,
- 1.54059147, 1.52211291, 0.97830268]
+[1.12813491, 2.83085111, 1.58434645, 1.43228525, 0.83492189, 0.66806778,
+ 2.03889427, 1.17961235, 1.34795644, 0.95753879, 1.17740747, 3.4084877 ,
+ 1.38086424, 0.65948581, 1.55162886, 0.62960656, 1.8379129 , 1.19885429,
+ 1.45544275, 1.5119547 , 0.92264528]
 
 Model Config:
 LGBMClassifier(class_weight='balanced', max_depth=20, n_estimators=200,
                num_leaves=63, random_state=42, verbose=-1)
 
-Final_Acc: 0.7678168653468092
+Final_Acc: 0.7534146014181112
 
 clean: impute_class_mean
 outlier: IQR

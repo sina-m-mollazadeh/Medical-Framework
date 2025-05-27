@@ -1,0 +1,12 @@
+Selected 19 features: ['HashPassportNumber_p', 'Male', 'TicketID', 'VehicleType', 'Created_is_weekend', 'DepartureTime_day_of_week', 'Created_day_of_week', 'DepartureTime_is_weekend', 'VehicleClass', 'Created_hour', 'CancelTime_is_weekend', 'BuyerMobile', 'Vehicle', 'CancelTime_day_of_year', 'CancelTime_day_of_week', 'DepartureTime_hour', 'HashEmail', 'CancelTime_hour', 'To']
+
+Model Config:
+RandomForestClassifier(min_samples_split=5, random_state=42)
+
+Final_Acc: 0.9997833056222024
+
+clean: impute_class_median
+outlier: LOF
+norm: MinMaxScalarNorm
+feature: TreeBased
+model: RandomForest

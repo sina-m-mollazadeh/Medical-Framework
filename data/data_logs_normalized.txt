@@ -1,0 +1,12 @@
+Selected 24 features: ['CAD_Total', 'Smoking_Status', 'Sex', 'FileNo', 'DepressionScore', 'WC', 'DBP', 'PAB', 'phase2', 'Cholesterol', 'HDL', 'Age', 'Nightly_Sleep', 'AnxietyScore', 'Uric_Acid', 'BMI', 'DurationC1', 'LDL', 'GFR', 'Glucose', 'SBP', 'PAL', 'hs_CRP', 'TG']
+
+Model Config:
+KNeighborsClassifier()
+
+Final_Acc: 0.9671900648630594
+
+clean: drop_rows
+outlier: iNNe
+norm: MinMaxScalarNorm
+feature: L1_Based
+model: KNN

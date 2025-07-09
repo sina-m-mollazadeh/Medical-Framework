@@ -1,0 +1,12 @@
+Selected 11 features: ['age_1', 'Sex', 'HDL', 'Glocuse', 'LdL', 'Cholesterol', 'FileNo', 'BPD', 'HSCRP', 'BPS', 'TRIGLYCERIDES']
+
+Model Config:
+LogisticRegression(C=1, l1_ratio=0, max_iter=1000, solver='saga')
+
+Final_Acc: 0.8008952702702703
+
+clean: No Null Data
+outlier: IQR
+norm: MinMaxScalarNorm
+feature: SelectK
+model: LogisticRegression

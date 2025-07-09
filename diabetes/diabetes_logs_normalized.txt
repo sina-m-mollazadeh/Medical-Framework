@@ -1,0 +1,12 @@
+Selected 8 features: ['Age', 'Glucose', 'Insulin', 'Pregnancies', 'SkinThickness', 'DiabetesPedigreeFunction', 'BMI', 'BloodPressure']
+
+Model Config:
+GradientBoostingClassifier(n_estimators=50)
+
+Final_Acc: 0.6945970340309675
+
+clean: No Null Data
+outlier: SP
+norm: MinMaxScalarNorm
+feature: RFE_FeatureSelection
+model: GradientBoosting

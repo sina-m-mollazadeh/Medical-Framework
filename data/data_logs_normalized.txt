@@ -1,4 +1,4 @@
-Selected 24 features: ['CAD_Total', 'Smoking_Status', 'Sex', 'FileNo', 'DepressionScore', 'WC', 'DBP', 'PAB', 'phase2', 'Cholesterol', 'HDL', 'Age', 'Nightly_Sleep', 'AnxietyScore', 'Uric_Acid', 'BMI', 'DurationC1', 'LDL', 'GFR', 'Glucose', 'SBP', 'PAL', 'hs_CRP', 'TG']
+Selected 24 features: ['CAD_Total', 'Smoking_Status', 'Sex', 'FileNo', 'DepressionScore', 'WC', 'DBP', 'PAB', 'Cholesterol', 'phase2', 'HDL', 'Age', 'Nightly_Sleep', 'AnxietyScore', 'DurationC1', 'Uric_Acid', 'BMI', 'LDL', 'GFR', 'Glucose', 'SBP', 'PAL', 'hs_CRP', 'TG']
 
 Model Config:
 KNeighborsClassifier()

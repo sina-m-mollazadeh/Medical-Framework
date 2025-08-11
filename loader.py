@@ -1,0 +1,210 @@
+# Plot Section
+import numpy as np
+import matplotlib.pyplot as plt
+
+def plot_histograms_grouped(X, path, bins=30, max_per_figure=10):
+    num_features = X.shape[1]
+    num_figures = int(np.ceil(num_features / max_per_figure))
+    
+    columns = X.columns.tolist()
+    
+    for fig_idx in range(num_figures):
+        start = fig_idx * max_per_figure
+        end = min(start + max_per_figure, num_features)
+        subset_columns = columns[start:end]
+        
+        n_cols = 2
+        n_rows = int(np.ceil(len(subset_columns) / n_cols))
+        
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=(10, n_rows * 4))
+        axes = axes.flatten()
+
+        for idx, column in enumerate(subset_columns):
+            ax = axes[idx]
+            ax.hist(X[column].dropna(), bins=bins, color='skyblue', edgecolor='black')
+            ax.set_title(column)
+            ax.grid(True, linestyle='--', alpha=0.7)
+
+        for extra_idx in range(len(subset_columns), len(axes)):
+            fig.delaxes(axes[extra_idx])
+
+        plt.tight_layout()
+        plt.savefig(f"{path}_histograms_{fig_idx}.png")
+        plt.close(fig) 
+
+def plot_pie_chart(series, path, title="Pie Chart Y Column"):
+    counts = series.value_counts()
+    labels = counts.index
+    sizes = counts.values
+
+    fig = plt.figure(figsize=(6, 6))
+    plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=140)
+    plt.title(title)
+    plt.axis('equal')
+    plt.savefig(f"{path}_{title.replace(' ', '_')}.png")
+    plt.close(fig)
+
+
+
+
+# Date Column Section
+import pandas as pd
+import jdatetime #Convert From Jalali to Datetime
+
+def is_pure_date_string(s):
+    try:
+        s = s.strip()
+        if any(char.isalpha() for char in s):
+            return False
+        Sep=""
+        if("/" in s):
+            Sep=s.split("/")
+        elif("-" in s):
+            Sep=s.split("-")
+        else:
+            return False
+        if(len(Sep)==3):
+            try:
+                _,_,_=map(int,Sep)
+                return True
+            except:
+                return False
+    except:
+        return False
+
+
+def identify_date_columns(data):
+    date_columns = []
+
+    for col in data.select_dtypes(include=['object', 'string']):
+        non_null_values = data[col].dropna()
+
+        try:
+            pd.to_datetime(non_null_values, errors='raise', infer_datetime_format=True)
+            date_columns.append(col)
+        except Exception:
+            continue
+
+    return date_columns
+
+def convert_jalali_column_to_datetime(col):
+    converted = []
+    for val in col:
+        try:
+            val = str(val).strip()
+            parts = val.split('/')
+            if len(parts) == 3:
+                year, month, day = map(int, parts)
+                jdate = jdatetime.date(year, month, day).togregorian()
+                dt = pd.Timestamp(jdate)
+            else:
+                dt = pd.NaT
+        except:
+            dt = pd.NaT
+        converted.append(dt)
+    return pd.Series(converted)
+
+def detect_calendar_type(date_str):
+    try:
+        date_str = str(date_str).strip()
+        parts=""
+        if("/" in date_str):
+            parts = date_str.split('/')
+        elif("-" in date_str):
+            parts = date_str.split('/')
+        if len(parts) != 3:
+            return 'unknown'
+        year = int(parts[0])
+        if 1200 <= year <= 1500:
+            return 'jalali'
+        elif 1800 <= year <= 2200:
+            return 'gregorian'
+        else:
+            return 'unknown'
+    except:
+        return 'unknown'
+
+def process_date_columns(data, reference_column=None):
+    date_columns=identify_date_columns(data)
+
+    if(len(date_columns)==0):
+        return data
+    typeCal=detect_calendar_type((data[date_columns[0]].values)[0])
+    if(typeCal=="jalali"):
+        for col in date_columns:
+            data[col] = convert_jalali_column_to_datetime(data[col])
+    else:
+        for col in date_columns:
+            data[col] = pd.to_datetime(data[col], errors='coerce')
+
+    for col in date_columns:
+        data[f'{col}_year'] = data[col].dt.year.astype(float)
+        data[f'{col}_month'] = data[col].dt.month.astype(float)
+        data[f'{col}_day'] = data[col].dt.day.astype(float)
+        data[f'{col}_day_of_week'] = data[col].dt.dayofweek.astype(float)
+        data[f'{col}_hour'] = data[col].dt.hour.astype(float)
+        data[f'{col}_day_of_year'] = data[col].dt.dayofyear.astype(float)
+        data[f'{col}_is_weekend'] = (data[col].dt.weekday >= 5).astype(float)
+
+
+    if reference_column:
+        for col in date_columns:
+            data[f'{col}_time_diff'] = (data[reference_column] - data[col]).dt.total_seconds() / (60 * 60 * 24)
+
+    return data.drop(columns=date_columns)
+
+
+
+
+# Conversion Section
+import re
+
+def ConvertToNumeric(data):
+    data = process_date_columns(data)
+    cols = data.columns
+    num_cols = data._get_numeric_data().columns
+    categorical_columns = list(set(cols) - set(num_cols))
+
+    all_mappings = {}
+
+    for column in categorical_columns:
+        categories = list(data[column].dropna().astype(str).unique())
+        mapping = {cat: idx for idx, cat in enumerate(categories)}
+        all_mappings[column] = mapping
+
+        
+
+        data[column] = data[column].map(lambda x: mapping.get(str(x), x))
+
+    return data, all_mappings
+
+def sanitize_column_names(data, y_column):
+    data.columns = [
+        col if col == y_column else re.sub(r'[^\w]', '_', col)
+        for col in data.columns
+    ]
+    return data
+
+
+# Loader
+from sklearn.preprocessing import LabelEncoder # Encode y column
+
+def load_data(path, y_column):
+    if("csv" in path):
+        data=pd.read_csv(path, na_values=[" ", "", "NA", "NaN"])
+    elif("xlsx" in path):
+        data=pd.read_excel(path,na_values=[" ", "", "NA", "NaN"])
+    else:
+        print("Format not Supported")
+        return None
+    threshold = 2
+    valid_cols = data.columns[data.notna().sum() >= threshold]
+    data = data[valid_cols]
+    data=sanitize_column_names(data,y_column)
+    data,all_mappings=ConvertToNumeric(data)
+    le = LabelEncoder()
+    data[y_column] = le.fit_transform(data[y_column])
+    Y=data[y_column]
+    X=data.drop(columns=y_column)
+
+    return X,Y,data,all_mappings

@@ -1,12 +1,12 @@
 Selected 8 features: ['Age', 'Glucose', 'Insulin', 'Pregnancies', 'SkinThickness', 'DiabetesPedigreeFunction', 'BMI', 'BloodPressure']
 
 Model Config:
-GradientBoostingClassifier(n_estimators=50)
+RandomForestClassifier(random_state=42)
 
-Final_Acc: 0.6945970340309675
+Final_Acc: 0.7027408746203582
 
 clean: No Null Data
 outlier: SP
 norm: MinMaxScalarNorm
 feature: RFE_FeatureSelection
-model: GradientBoosting
+model: RandomForest

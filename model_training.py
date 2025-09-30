@@ -4,7 +4,7 @@ from sklearn.svm import SVC #Model Training
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier #Model Training
 from sklearn.naive_bayes import GaussianNB #Model Training
 from xgboost import XGBClassifier #Model Training
-from sklearn.metrics import accuracy_score #Model Training
+from sklearn.metrics import accuracy_score,confusion_matrix,roc_curve #Model Training
 from lightgbm import LGBMClassifier #Model Training
 from catboost import CatBoostClassifier #Model Training
 from collections import Counter # Balanced Learning and Model Training
@@ -48,7 +48,7 @@ def run_model_with_grid_search(model_name, model, param_grid, x_train, x_test, y
     y_pred = best_model.predict(x_test)
     score = custom_score(y_test, y_pred, num_classes)
     print(f"{model_name} custom score: {score:.4f}")
-    return (score, best_model) if return_model else (score, None)
+    return (score, best_model,y_pred) if return_model else (score, None,None)
 
 def NeuralNetworkBased(x_train, x_test, y_train, y_test, return_model, num_classes):
     param_grid = {
@@ -151,12 +151,14 @@ def model_training(x_train,x_test,y_train,y_test):
     best_algo = None
     best_accuracy = 0
     num_classes = pd.concat([y_train, y_test]).nunique()
-
+    cm=None
+    fpr=None
+    tpr=None
     for name, func in algorithm_functions_model_training.items():
         print(name)
         print()
 
-        accuracy,model = func(x_train.copy(),x_test.copy(),y_train.copy(),y_test.copy(),return_model=False,num_classes=num_classes)
+        accuracy,model,y_pred = func(x_train.copy(),x_test.copy(),y_train.copy(),y_test.copy(),return_model=False,num_classes=num_classes)
 
         acc_holder[name] = accuracy
 
@@ -165,6 +167,9 @@ def model_training(x_train,x_test,y_train,y_test):
             best_algo = name
 
     if best_algo:
-        accuracy,model = algorithm_functions_model_training[best_algo](x_train.copy(),x_test.copy(),y_train.copy(),y_test.copy(),return_model=True,num_classes=num_classes)
+        accuracy,model,y_pred = algorithm_functions_model_training[best_algo](x_train.copy(),x_test.copy(),y_train.copy(),y_test.copy(),return_model=True,num_classes=num_classes)
+        cm = confusion_matrix(y_test, y_pred)
+        fpr, tpr, _ = roc_curve(y_test, y_pred)
 
-    return model, best_algo, best_accuracy,acc_holder
+
+    return model, best_algo, best_accuracy, acc_holder, cm, fpr, tpr

@@ -18,7 +18,10 @@ def apply_balancing(x_train, y_train, method='smote'):
     else:
         raise ValueError("Unsupported balancing method. Use 'smote' or 'random'.")
     
-    x_res, y_res = sampler.fit_resample(x_train, y_train)
+    try:
+        x_res, y_res = sampler.fit_resample(x_train, y_train)
+    except:
+        return x_train,y_train
     return x_res, y_res
 
 def check_and_balance(x_train, y_train, method_selection_fn):

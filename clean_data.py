@@ -194,11 +194,11 @@ algorithm_functions_clean_data = {
     "impute_mean": MeanImputer(),
     "impute_median": MedianImputer(),
     "impute_class_mean": ClassMeanImputer(),
-    "impute_class_median": ClassMedianImputer(),
-    "ffill": FFillImputer(),
-    "bfill": BFillImputer(),
-    "interpolate": InterpolateImputer(),
-    "Iterative_model_Imputation": IterativeModelImputer(),
-    "KNN_Imputation": KNNImputerWrapper()
+    # "impute_class_median": ClassMedianImputer(),
+    # "ffill": FFillImputer(),
+    # "bfill": BFillImputer(),
+    # "interpolate": InterpolateImputer(),
+    # "Iterative_model_Imputation": IterativeModelImputer(),
+    # "KNN_Imputation": KNNImputerWrapper()
 }
  # "Model_imputation": ModelImputer(),

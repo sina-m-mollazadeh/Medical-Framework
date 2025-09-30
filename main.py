@@ -268,7 +268,7 @@ plot_histograms_grouped(X_normalization,path=f"{path}_after_")
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-from feature_selectioin import feature_selection
+from feature_selection import feature_selection
 
 X_feature, Y_feature, best_algo_feature, best_acc_feature,acc_holder_feature,final_scores_feature,final_results_feature=feature_selection(X_normalization,Y_normalization,categories)
 

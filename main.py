@@ -5,10 +5,10 @@ warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=pd.errors.DtypeWarning) 
 
 from loader import load_data
-path="./data_1_1/data1_1"
+path="./health_care/healthcare_dataset"
 typeData="csv"
 normalized=True
-y_column="event"
+y_column="Test Results"
 
 X,Y,data,all_mappings=load_data(path=f"{path}.{typeData}",y_column=y_column)
 X=X.astype("float64")

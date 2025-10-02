@@ -36,7 +36,7 @@ x_new = pd.DataFrame([{
     "DBP": 80,
     "AnxietyScore": 13,
     "DepressionScore": 10,
-    "LDL": 77.4,
+    "LDL": 788887.4,
     "Glucose": 70,
     "Uric_Acid": 4.1,
     "Cholesterol": 136,

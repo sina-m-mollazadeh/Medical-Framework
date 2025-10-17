@@ -48,7 +48,7 @@ def run_model_with_grid_search(model_name, model, param_grid, x_train, x_test, y
     y_pred = best_model.predict(x_test)
     score = custom_score(y_test, y_pred, num_classes)
     print(f"{model_name} custom score: {score:.4f}")
-    return (score, best_model,y_pred) if return_model else (score, None,None)
+    return (score, best_model,y_pred,total_combinations) if return_model else (score, None,None,total_combinations)
 
 def NeuralNetworkBased(x_train, x_test, y_train, y_test, return_model, num_classes):
     param_grid = {
@@ -154,22 +154,24 @@ def model_training(x_train,x_test,y_train,y_test):
     cm=None
     fpr=None
     tpr=None
+    tot_combs_all_models=0
     for name, func in algorithm_functions_model_training.items():
         print(name)
-        print()
 
-        accuracy,model,y_pred = func(x_train.copy(),x_test.copy(),y_train.copy(),y_test.copy(),return_model=False,num_classes=num_classes)
-
+        accuracy,model,y_pred,total_combinations = func(x_train.copy(),x_test.copy(),y_train.copy(),y_test.copy(),return_model=False,num_classes=num_classes)
+        tot_combs_all_models+=total_combinations
         acc_holder[name] = accuracy
 
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_algo = name
+        print()
+
 
     if best_algo:
-        accuracy,model,y_pred = algorithm_functions_model_training[best_algo](x_train.copy(),x_test.copy(),y_train.copy(),y_test.copy(),return_model=True,num_classes=num_classes)
+        accuracy,model,y_pred,_ = algorithm_functions_model_training[best_algo](x_train.copy(),x_test.copy(),y_train.copy(),y_test.copy(),return_model=True,num_classes=num_classes)
         cm = confusion_matrix(y_test, y_pred)
         fpr, tpr, _ = roc_curve(y_test, y_pred)
 
 
-    return model, best_algo, best_accuracy, acc_holder, cm, fpr, tpr
+    return model, best_algo, best_accuracy, acc_holder, cm, fpr, tpr,tot_combs_all_models

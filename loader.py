@@ -110,24 +110,25 @@ def process_date_columns(data, reference_column=None):
 # Conversion Section
 import re
 
-def ConvertToNumeric(data):
+def ConvertToNumeric(data,y_column):
     data = process_date_columns(data)
     cols = data.columns
     num_cols = data._get_numeric_data().columns
     categorical_columns = list(set(cols) - set(num_cols))
 
     all_mappings = {}
-
+    y_mappings={}
     for column in categorical_columns:
         categories = list(data[column].dropna().astype(str).unique())
         mapping = {cat: idx for idx, cat in enumerate(categories)}
         all_mappings[column] = mapping
-
+        if(column==y_column):
+            y_mappings[column]=mapping
         
 
         data[column] = data[column].map(lambda x: mapping.get(str(x), x))
 
-    return data, all_mappings
+    return data, all_mappings,y_mappings
 
 def sanitize_column_names(data, y_column):
     data.columns = [
@@ -152,10 +153,10 @@ def load_data(path, y_column):
     valid_cols = data.columns[data.notna().sum() >= threshold]
     data = data[valid_cols]
     data=sanitize_column_names(data,y_column)
-    data,all_mappings=ConvertToNumeric(data)
+    data,all_mappings,y_mappings=ConvertToNumeric(data,y_column=y_column)
     le = LabelEncoder()
     data[y_column] = le.fit_transform(data[y_column])
     Y=data[y_column]
     X=data.drop(columns=y_column)
 
-    return X,Y,data,all_mappings
+    return X,Y,data,all_mappings,y_mappings

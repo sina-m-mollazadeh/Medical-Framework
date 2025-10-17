@@ -82,7 +82,6 @@ def feature_selection(X, Y, categories):
         sorted_cols = sorted_cols.apply(lambda x: x[1])
         q1=pd.Series(sorted_cols).quantile(0.25)
         q3=pd.Series(sorted_cols).quantile(0.75)
-        print(q1,q3)
         min_cut=q1-1.5*(q3-q1)
         count=0
         for num in sorted_cols:

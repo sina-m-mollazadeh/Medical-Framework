@@ -62,7 +62,7 @@ def plot_heatmap(X,Y,path):
         square=True,
         ax=ax
     )
-    plt.savefig(f"{path}_heatmapBeforeFeature.png")
+    plt.savefig(f"{path}_heatmapFeature.png")
     plt.close(fig)
 
 

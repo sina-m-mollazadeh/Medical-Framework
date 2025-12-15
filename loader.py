@@ -149,8 +149,9 @@ def load_data(path, y_column):
     else:
         print("Format not Supported")
         return None
-    threshold = 2
-    valid_cols = data.columns[data.notna().sum() >= threshold]
+    threshold = 0.9
+    
+    valid_cols = data.columns[data.notna().mean() >= threshold]
     data = data[valid_cols]
     data=sanitize_column_names(data,y_column)
     data,all_mappings,y_mappings=ConvertToNumeric(data,y_column=y_column)

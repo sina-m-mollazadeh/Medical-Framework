@@ -134,15 +134,15 @@ def GradientBoostingBased(x_train, x_test, y_train, y_test, return_model, num_cl
 
 algorithm_functions_model_training = {
     "LogisticRegression": LogisticRegressionBased,
-    "KNN": KNNBased,
-    "NaiveBayes": NaiveBayesBased,
+    # "KNN": KNNBased,
+    # "NaiveBayes": NaiveBayesBased,
     "RandomForest": RandomForestBased,
     "XGBoost": XGBoostBased,
     "LightGBM": LightGBMBased,
-    "CatBoost": CatBoostBased,
-    "GradientBoosting": GradientBoostingBased,
-    "NeuralNetwork": NeuralNetworkBased,
-    "SVM": SVMBased,
+    # "CatBoost": CatBoostBased,
+    # "GradientBoosting": GradientBoostingBased,
+    # "NeuralNetwork": NeuralNetworkBased,
+    # "SVM": SVMBased,
 }
 
 

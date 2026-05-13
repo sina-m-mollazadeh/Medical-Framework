@@ -37,8 +37,9 @@ def run_model_with_grid_search(model_name, model, param_grid, x_train, x_test, y
         if "class_weight" in model.get_params().keys():
             param_grid["class_weight"] = ["balanced"]
         if model_name == "XGBoostBased":
-            neg, pos = np.bincount(y_train)
-            param_grid["scale_pos_weight"] = [neg / pos]
+            if(num_classes==2):
+                neg, pos = np.bincount(y_train)
+                param_grid["scale_pos_weight"] = [neg / pos]
 
     total_combinations = np.prod([len(v) for v in param_grid.values()])
     print(f"Running {model_name} with {total_combinations} model configurations...")
@@ -157,7 +158,6 @@ def model_training(x_train,x_test,y_train,y_test):
     tot_combs_all_models=0
     for name, func in algorithm_functions_model_training.items():
         print(name)
-
         accuracy,model,y_pred,total_combinations = func(x_train.copy(),x_test.copy(),y_train.copy(),y_test.copy(),return_model=False,num_classes=num_classes)
         tot_combs_all_models+=total_combinations
         acc_holder[name] = accuracy
@@ -171,7 +171,24 @@ def model_training(x_train,x_test,y_train,y_test):
     if best_algo:
         accuracy,model,y_pred,_ = algorithm_functions_model_training[best_algo](x_train.copy(),x_test.copy(),y_train.copy(),y_test.copy(),return_model=True,num_classes=num_classes)
         cm = confusion_matrix(y_test, y_pred)
-        fpr, tpr, _ = roc_curve(y_test, y_pred)
+        if num_classes == 2:
+            y_prob = model.predict_proba(x_test)[:, 1]
+            fpr, tpr, _ = roc_curve(y_test, y_prob)
+        else:
+            y_test_bin = label_binarize(
+                y_test,
+                classes=np.unique(y_train)
+            )
+            y_prob = model.predict_proba(x_test)
+
+            fpr = {}
+            tpr = {}
+
+            for i in range(num_classes):
+                fpr[i], tpr[i], _ = roc_curve(
+                    y_test_bin[:, i],
+                    y_prob[:, i]
+                )
 
 
     return model, best_algo, best_accuracy, acc_holder, cm, fpr, tpr,tot_combs_all_models

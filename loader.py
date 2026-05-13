@@ -149,15 +149,18 @@ def load_data(path, y_column):
     else:
         print("Format not Supported")
         return None
-    threshold = 0.9
     
+    # The below three lines remove columns with more than Threshold% Empty Rows
+    threshold = 0.9
     valid_cols = data.columns[data.notna().mean() >= threshold]
     data = data[valid_cols]
+
     data=sanitize_column_names(data,y_column)
+
     data,all_mappings,y_mappings=ConvertToNumeric(data,y_column=y_column)
     le = LabelEncoder()
-    data[y_column] = le.fit_transform(data[y_column])
-    Y=data[y_column]
+    Y=data[y_column].dropna()
+    Y = le.fit_transform(Y)
     X=data.drop(columns=y_column)
 
     return X,Y,data,all_mappings,y_mappings

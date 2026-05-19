@@ -137,10 +137,30 @@ def sanitize_column_names(data, y_column):
     ]
     return data
 
+import numpy as np
+import pandas as pd
+from collections import Counter
 
-# Loader
+def get_adaptive_weights(X, Y):
+    # Identify the minority class ratio
+    counts = Y.value_counts(normalize=True)
+    minority_ratio = counts.min()
+
+    # If the data is highly imbalanced, Recall is our priority.
+    # We set a static, high-quality objective.
+    if minority_ratio < 0.20:
+        # Heavily prioritize Recall and F-Beta
+        return {
+            'acc': 0.1, 
+            'rec': 0.5, 
+            'prec': 0.1, 
+            'f1': 0.3
+        }
+    else:
+        # Balanced data
+        return {'acc': 0.25, 'rec': 0.25, 'prec': 0.25, 'f1': 0.25}
+
 from sklearn.preprocessing import LabelEncoder # Encode y column
-
 def load_data(path, y_column):
     if("csv" in path):
         data=pd.read_csv(path, na_values=[" ", "", "NA", "NaN"])
@@ -155,12 +175,18 @@ def load_data(path, y_column):
     valid_cols = data.columns[data.notna().mean() >= threshold]
     data = data[valid_cols]
 
+    # Drop Column whose y values have null
+    data = data.dropna(subset=[y_column])    
+
     data=sanitize_column_names(data,y_column)
 
     data,all_mappings,y_mappings=ConvertToNumeric(data,y_column=y_column)
     le = LabelEncoder()
-    Y=data[y_column].dropna()
+
+    Y=data[y_column]
     Y = le.fit_transform(Y)
     X=data.drop(columns=y_column)
 
-    return X,Y,data,all_mappings,y_mappings
+    weights=get_adaptive_weights(X,pd.Series(Y,name="a"))
+
+    return X,Y,data,all_mappings,y_mappings,weights

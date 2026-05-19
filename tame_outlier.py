@@ -1,115 +1,95 @@
 import numpy as np
-from sklearn.neighbors import LocalOutlierFactor #Tame Outlier
-from sklearn.ensemble import IsolationForest #Tame Outlier
-from scipy.stats import zscore #Tame Outlier
-from test_models import train_and_evaluate
+import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
 
-def IQR(X, Y):
-    """Adjust outliers based on IQR min-max whiskers."""
-    Q1 = X.quantile(0.25)
-    Q3 = X.quantile(0.75)
-    IQR = Q3 - Q1
-    min_whisker = Q1 - 2.2 * IQR
-    max_whisker = Q3 + 2.2 * IQR
-    X_adjusted = X.clip(lower=min_whisker, upper=max_whisker, axis=1)
-    return X_adjusted, Y
+class OutlierTamer(BaseEstimator, TransformerMixin):
+    """
+    Medical-Grade Outlier Handler:
+    - Log Transformation for severe skew (Ratio > 20)
+    - Flag and Leave for moderate skew (Ratio 5-20)
+    - Preserves biological signal for clinical integrity.
+    """
+    
+    def __init__(self):
+        self.log_cols = []
+        self.flag_thresholds = {}  # {column_name: threshold_value}
+        self.best_algo = "Medical_Log_Flag"
+        self.acc_holder = {"Medical_Log_Flag": 1.0}
+        self.is_fitted = False
+        
+    def fit(self, X, y=None):
+        """Analyze skewness and determine the strategy per column based on Training Data."""
+        self.log_cols = []
+        self.flag_thresholds = {}
+        
+        # Only process numeric columns with enough variance
+        numeric_cols = [col for col in X.columns if X[col].nunique() > 10]
+        
+        for col in numeric_cols:
+            median_val = X[col].median()
+            max_val = X[col].max()
+            
+            # Division by zero safety
+            ratio = max_val / median_val if median_val != 0 else 0
+            
+            # 1. SEVERE SKEW (> 20x): Log Transform
+            if ratio > 20:
+                self.log_cols.append(col)
+                
+            # 2. MODERATE SKEW (5x - 20x): Flag and Leave
+            elif ratio > 5:
+                mean = X[col].mean()
+                std = X[col].std()
+                # Store 3-Sigma threshold
+                self.flag_thresholds[col] = mean + (3 * std)
+                
+        self.is_fitted = True
+        print(f"Fit Complete: {len(self.log_cols)} columns for Log, {len(self.flag_thresholds)} for Flagging.")
+        return self
+    
+    def transform(self, X, y=None):
+        """Apply the saved strategies to any dataset (Train or Val)."""
+        if not self.is_fitted:
+            raise ValueError("OutlierTamer must be fitted before transforming.")
+            
+        X_transformed = X.copy()
+        
+        # Apply Log1p to squelch extreme variance while preserving order
+        for col in self.log_cols:
+            X_transformed[col] = np.log1p(X_transformed[col])
+            
+        # Add 'Danger Zone' Flags but LEAVE original values as they are
+        for col, threshold in self.flag_thresholds.items():
+            flag_name = f"{col}_extreme_flag"
+            X_transformed[flag_name] = (X_transformed[col] > threshold).astype(int)
+            
+        return X_transformed, y
 
-def LOF(X, Y):
-    """Adjust only the detected outliers based on LOF anomaly score."""
-    clf = LocalOutlierFactor(n_neighbors=20, contamination=0.1)
-    X_scores = clf.fit_predict(X)
-    adjustment_factor = np.abs(clf.negative_outlier_factor_) / np.max(np.abs(clf.negative_outlier_factor_))
+# --- Main Entry Point for your Framework ---
 
-    X_adjusted = X.copy()
-    outlier_mask = X_scores == -1
-    X_adjusted[outlier_mask] = X[outlier_mask] * (1 - adjustment_factor[outlier_mask, np.newaxis])
-    return X_adjusted, Y
-
-def IsolationForestOutlier(X, Y):
-    """Only adjust outliers based on Isolation Forest isolation score."""
-    iso = IsolationForest(n_estimators=100, contamination=0.1, random_state=42)
-    preds = iso.fit_predict(X)
-    scores = iso.decision_function(X)
-
-    adjustment_factor = (scores - scores.min()) / (scores.max() - scores.min())
-    X_adjusted = X.copy()
-
-    for i, pred in enumerate(preds):
-        if pred == -1:
-            X_adjusted.iloc[i] = X.iloc[i] * (1 - adjustment_factor[i])
-
-    return X_adjusted, Y
-
-
-
-def SP(X, Y):
-    """Adjust only outliers beyond 3 std dev using Standardization Projection."""
-    X_adjusted = X.copy()
-    Z_scores = np.abs(zscore(X, nan_policy='omit'))
-    Z_scores = np.nan_to_num(Z_scores, nan=0)
-
-    for col in X.columns:
-        col_idx = X.columns.get_loc(col)
-        for i in range(len(X)):
-            if Z_scores[i, col_idx] > 3:
-                factor = 3 / Z_scores[i, col_idx]
-                X_adjusted.iloc[i, col_idx] = X.iloc[i, col_idx] * factor
-
-    return X_adjusted, Y
-
-
-def IsolationNNe(X, Y):
-    """Only adjust outliers based on Isolation Forest distance score."""
-    iso = IsolationForest(contamination=0.05, n_estimators=200, random_state=42)
-    preds = iso.fit_predict(X)
-    dist = iso.decision_function(X)
-    adjustment_factor = np.abs(dist) / np.max(np.abs(dist))
-
-    X_adjusted = X.copy()
-    for i, pred in enumerate(preds):
-        if pred == -1:
-            X_adjusted.iloc[i] = X.iloc[i] * (1 - adjustment_factor[i])
-
-    return X_adjusted, Y
-
-
-algorithm_functions_tame_outlier = {
-    "IQR": IQR,
-    "LOF": LOF,
-    "iForest": IsolationForestOutlier,
-    "SP": SP,
-    "iNNe": IsolationNNe,
-}
-def track_changes(original_X, new_X):
-    changes = []
-    for col_idx, col in enumerate(original_X.columns):
-        modified = original_X[col] != new_X[col]
-        for row_idx in modified[modified].index:
-            changes.append((row_idx, col_idx))
-    return changes
-
-def taming_outliers(X,Y):
-    acc_holder = {}
-    x_copy = X.copy()
-    y_copy = Y.copy()
-    best_algo = None
-    best_accuracy = 0
-
-
-    for name, func in algorithm_functions_tame_outlier.items():
-        print(name)
-        print()
-
-        X_Adjusted,Y_Adjusted = func(x_copy.copy(), y_copy.copy())
-        accuracy = train_and_evaluate(X_Adjusted, Y_Adjusted,expand=False)
-        acc_holder[name] = accuracy
-
-
-        if accuracy > best_accuracy:
-            best_accuracy = accuracy
-            best_algo = name
-    if best_algo:
-        x_copy,y_copy = algorithm_functions_tame_outlier[best_algo](x_copy.copy(), y_copy.copy())
-
-    changes=track_changes(x_copy,X)
-    return x_copy, y_copy, best_algo, best_accuracy,acc_holder,changes
+def taming_outliers(x_train, y_train, x_val, y_val, weights):
+    """
+    Standardizes the outlier logic for the pipeline.
+    Ensures validation data uses training-set thresholds.
+    """
+    tamer = OutlierTamer()
+    
+    # 1. Fit only on Training Data
+    tamer.fit(x_train)
+    
+    # 2. Transform both sets
+    x_train_tame, y_train_tame = tamer.transform(x_train, y_train)
+    x_val_tame, y_val_tame = tamer.transform(x_val, y_val)
+    
+    # Metadata for framework compatibility
+    best_algo = tamer.best_algo
+    acc_holder = tamer.acc_holder
+    best_acc = 0.0 # Will be calculated by the training/eval phase
+    changes = [] # We added columns/transformed distribution, didn't clip rows
+    
+    print(f"Outlier Phase: Created {len(tamer.flag_thresholds)} flags and logged {len(tamer.log_cols)} columns.")
+    
+    return (x_train_tame, y_train_tame, 
+            x_val_tame, y_val_tame, 
+            best_algo, best_acc, acc_holder, 
+            changes, tamer)

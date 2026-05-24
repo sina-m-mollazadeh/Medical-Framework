@@ -98,7 +98,7 @@ def SVMBased(x_train, x_test, y_train, y_test, return_model, num_classes,weights
 
 def RandomForestBased(x_train, x_test, y_train, y_test, return_model, num_classes,weights):
     param_grid = {
-        'n_estimators': [50, 100],
+        'n_estimators': [50, 100, 200, 500,1000,2000],
         'max_depth': [None, 10, 20],
         'min_samples_split': [2, 5]
     }
@@ -106,9 +106,13 @@ def RandomForestBased(x_train, x_test, y_train, y_test, return_model, num_classe
 
 def XGBoostBased(x_train, x_test, y_train, y_test, return_model, num_classes,weights):
     param_grid = {
-        'n_estimators': [50, 100],
-        'max_depth': [3, 6, 10],
-        'learning_rate': [0.01, 0.1, 0.2]
+        'n_estimators': [200, 500, 1000],
+        'learning_rate': [0.01, 0.05, 0.1],
+        'max_depth': [3, 5, 7],
+        'subsample': [0.6, 0.8, 1.0],
+        'colsample_bytree': [0.6, 0.8, 1.0],
+        'reg_alpha': [0, 0.1, 1],
+        'reg_lambda': [1, 5]
     }
     return run_model_with_grid_search("XGBoostBased", XGBClassifier(use_label_encoder=True, eval_metric='mlogloss'), param_grid, x_train, x_test, y_train, y_test, return_model, num_classes,weights)
 
@@ -187,11 +191,12 @@ def train_stacked_model(top_model_funcs, x_train, x_test, y_train, y_test, num_c
             method='isotonic', 
             cv='prefit' # We use prefit because the model was already trained inside 'func'
         )
-        calibrated_model.fit(x_test, y_test) # Calibrate on the hold-out/validation data
+        calibrated_model.fit(x_train, y_train) # Calibrate on the hold-out/validation data
         
         base_estimators.append((name, calibrated_model))
 
     # 2. Prepare Meta-features using Out-of-Fold predictions
+
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     meta_train = np.zeros((x_train.shape[0], len(base_estimators)))
     

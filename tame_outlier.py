@@ -64,9 +64,7 @@ class OutlierTamer(BaseEstimator, TransformerMixin):
             X_transformed[flag_name] = (X_transformed[col] > threshold).astype(int)
             
         return X_transformed, y
-
-# --- Main Entry Point for your Framework ---
-
+    
 def taming_outliers(x_train, y_train, x_val, y_val, weights):
     """
     Standardizes the outlier logic for the pipeline.

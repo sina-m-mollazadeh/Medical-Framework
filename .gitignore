@@ -7,3 +7,4 @@ gitignore
 diabetes
 data1_1
 sklearn-note.ipynb
+.vscode

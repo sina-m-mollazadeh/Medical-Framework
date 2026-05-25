@@ -9,7 +9,12 @@ from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 
-class LogisticRegressionEstimator(BaseEstimator, ClassifierMixin):
+class LogisticRegressionEstimator(ClassifierMixin, BaseEstimator):
+    # _estimator_type belt-and-suspenders: also covered by ClassifierMixin
+    # being first in the MRO so __sklearn_tags__() reports classifier in
+    # sklearn >=1.6. Without this, sklearn's scorer treats us as a regressor
+    # and predict_proba scoring raises ValueError → CV scores become NaN.
+    _estimator_type = "classifier"
     def __init__(self, C=1.0, max_iter=1000, penalty='l2', class_weight='balanced'):
         self.C = C
         self.max_iter = max_iter
@@ -36,7 +41,8 @@ class LogisticRegressionEstimator(BaseEstimator, ClassifierMixin):
         return self.model.predict_proba(X)
 
 
-class SVCEstimator(BaseEstimator, ClassifierMixin):
+class SVCEstimator(ClassifierMixin, BaseEstimator):
+    _estimator_type = "classifier"
     def __init__(self, C=1.0, kernel='rbf'):
         self.C = C
         self.kernel = kernel
@@ -55,7 +61,8 @@ class SVCEstimator(BaseEstimator, ClassifierMixin):
         return self.model.predict_proba(X)
 
 
-class RandomForestEstimator(BaseEstimator, ClassifierMixin):
+class RandomForestEstimator(ClassifierMixin, BaseEstimator):
+    _estimator_type = "classifier"
     def __init__(self, n_estimators=100, max_depth=None, min_samples_leaf=1,
                  min_samples_split=2, max_features='sqrt', class_weight='balanced'):
         self.n_estimators = n_estimators
@@ -85,7 +92,8 @@ class RandomForestEstimator(BaseEstimator, ClassifierMixin):
         return self.model.predict_proba(X)
 
 
-class XGBoostEstimator(BaseEstimator, ClassifierMixin):
+class XGBoostEstimator(ClassifierMixin, BaseEstimator):
+    _estimator_type = "classifier"
     def __init__(self, n_estimators=200, learning_rate=0.1, max_depth=5,
                  min_child_weight=1, subsample=1.0, colsample_bytree=1.0,
                  reg_alpha=0.0, reg_lambda=1.0, scale_pos_weight=1.0, gamma=0.0):
@@ -122,7 +130,8 @@ class XGBoostEstimator(BaseEstimator, ClassifierMixin):
         return self.model.predict_proba(X)
 
 
-class LightGBMEstimator(BaseEstimator, ClassifierMixin):
+class LightGBMEstimator(ClassifierMixin, BaseEstimator):
+    _estimator_type = "classifier"
     def __init__(self, n_estimators=200, learning_rate=0.1, num_leaves=31,
                  min_child_samples=20, reg_alpha=0.0, reg_lambda=0.0,
                  subsample=1.0, colsample_bytree=1.0, class_weight='balanced',
@@ -163,7 +172,8 @@ class LightGBMEstimator(BaseEstimator, ClassifierMixin):
         return self.model.predict_proba(X)
 
 
-class CatBoostEstimator(BaseEstimator, ClassifierMixin):
+class CatBoostEstimator(ClassifierMixin, BaseEstimator):
+    _estimator_type = "classifier"
     def __init__(self, iterations=300, learning_rate=0.1, depth=6,
                  l2_leaf_reg=3.0, auto_class_weights='Balanced'):
         self.iterations = iterations
@@ -191,7 +201,8 @@ class CatBoostEstimator(BaseEstimator, ClassifierMixin):
         return self.model.predict_proba(X)
 
 
-class MLPEstimator(BaseEstimator, ClassifierMixin):
+class MLPEstimator(ClassifierMixin, BaseEstimator):
+    _estimator_type = "classifier"
     def __init__(self, hidden_layer_sizes=(100,), max_iter=500):
         self.hidden_layer_sizes = hidden_layer_sizes
         self.max_iter = max_iter

@@ -1,0 +1,25 @@
+# Core data / numerics
+numpy
+pandas
+scipy
+joblib
+cloudpickle
+
+# ML — scikit-learn + boosted-tree libraries
+scikit-learn
+imbalanced-learn
+xgboost
+lightgbm
+catboost
+
+# Explainability / plotting
+shap
+matplotlib
+seaborn
+
+# Persian-calendar parsing in loader.py
+jdatetime
+
+# Notebook runtime
+jupyterlab
+ipykernel

@@ -6,6 +6,9 @@ from imblearn.under_sampling import RandomUnderSampler
 
 class IdentitySampler(BaseSampler):
     """Pass-through sampler handling balanced baseline targets seamlessly."""
+    _sampling_type = "bypass"
+    _parameter_constraints: dict = {}
+
     def __init__(self):
         super().__init__()
     def _fit_resample(self, X, y):
@@ -13,6 +16,9 @@ class IdentitySampler(BaseSampler):
 
 
 class SMOTESampler(BaseSampler):
+    _sampling_type = "over-sampling"
+    _parameter_constraints: dict = {}
+
     def __init__(self, k_neighbors=3, random_state=42):
         super().__init__()
         self.k_neighbors = k_neighbors
@@ -25,6 +31,9 @@ class SMOTESampler(BaseSampler):
 
 
 class RandomOverSamplerSampler(BaseSampler):
+    _sampling_type = "over-sampling"
+    _parameter_constraints: dict = {}
+
     def __init__(self, random_state=42):
         super().__init__()
         self.random_state = random_state
@@ -36,6 +45,9 @@ class RandomOverSamplerSampler(BaseSampler):
 
 
 class ADASYNSampler(BaseSampler):
+    _sampling_type = "over-sampling"
+    _parameter_constraints: dict = {}
+
     def __init__(self, n_neighbors=3, random_state=42):
         super().__init__()
         self.n_neighbors = n_neighbors
@@ -48,6 +60,9 @@ class ADASYNSampler(BaseSampler):
 
 
 class BorderlineSMOTESampler(BaseSampler):
+    _sampling_type = "over-sampling"
+    _parameter_constraints: dict = {}
+
     def __init__(self, k_neighbors=3, random_state=42):
         super().__init__()
         self.k_neighbors = k_neighbors
@@ -60,6 +75,9 @@ class BorderlineSMOTESampler(BaseSampler):
 
 
 class SMOTETomekSampler(BaseSampler):
+    _sampling_type = "clean-sampling"
+    _parameter_constraints: dict = {}
+
     def __init__(self, random_state=42):
         super().__init__()
         self.random_state = random_state
@@ -71,6 +89,9 @@ class SMOTETomekSampler(BaseSampler):
 
 
 class SMOTEENNSampler(BaseSampler):
+    _sampling_type = "clean-sampling"
+    _parameter_constraints: dict = {}
+
     def __init__(self, random_state=42):
         super().__init__()
         self.random_state = random_state
@@ -82,6 +103,9 @@ class SMOTEENNSampler(BaseSampler):
 
 
 class RandomUnderSamplerSampler(BaseSampler):
+    _sampling_type = "under-sampling"
+    _parameter_constraints: dict = {}
+
     def __init__(self, random_state=42):
         super().__init__()
         self.random_state = random_state

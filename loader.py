@@ -163,9 +163,9 @@ def get_adaptive_weights(X, Y):
 from sklearn.preprocessing import LabelEncoder # Encode y column
 def load_data(path, y_column):
     if("csv" in path):
-        data=pd.read_csv(path, na_values=[" ", "", "NA", "NaN"])
+        data=pd.read_csv(path,sep=None, na_values=[" ", "", "NA", "NaN"])
     elif("xlsx" in path):
-        data=pd.read_excel(path,na_values=[" ", "", "NA", "NaN"])
+        data=pd.read_excel(path,sep=None, na_values=[" ", "", "NA", "NaN"])
     else:
         print("Format not Supported")
         return None

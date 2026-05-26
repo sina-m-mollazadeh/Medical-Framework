@@ -79,7 +79,7 @@ class RandomForestEstimator(ClassifierMixin, BaseEstimator):
             min_samples_leaf=self.min_samples_leaf,
             min_samples_split=self.min_samples_split,
             max_features=self.max_features,
-            class_weight=self.class_weight, random_state=42, n_jobs=-1,
+            class_weight=self.class_weight, random_state=42, n_jobs=1,
         )
         self.model.fit(X, y)
         self.classes_ = self.model.classes_
@@ -116,7 +116,7 @@ class XGBoostEstimator(ClassifierMixin, BaseEstimator):
             subsample=self.subsample, colsample_bytree=self.colsample_bytree,
             reg_alpha=self.reg_alpha, reg_lambda=self.reg_lambda,
             scale_pos_weight=self.scale_pos_weight, gamma=self.gamma,
-            random_state=42, n_jobs=-1, eval_metric='logloss',
+            random_state=42, n_jobs=1, eval_metric='logloss',
             use_label_encoder=False, tree_method='hist',
         )
         self.model.fit(X, y)
@@ -154,7 +154,7 @@ class LightGBMEstimator(ClassifierMixin, BaseEstimator):
             num_leaves=self.num_leaves, min_child_samples=self.min_child_samples,
             reg_alpha=self.reg_alpha, reg_lambda=self.reg_lambda,
             subsample=self.subsample, colsample_bytree=self.colsample_bytree,
-            random_state=42, n_jobs=-1, verbose=-1,
+            random_state=42, n_jobs=1, verbose=-1,
         )
         if self.scale_pos_weight is not None:
             kwargs['scale_pos_weight'] = self.scale_pos_weight

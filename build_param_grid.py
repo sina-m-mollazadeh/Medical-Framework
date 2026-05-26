@@ -23,7 +23,6 @@ from clean_data import (
     MeanImputer, ClassMeanImputer, InterpolateImputer,
     KNNImputerWrapper, IterativeModelImputer,
 )
-from tame_outlier import OutlierTamer  # noqa: F401  (imported for downstream availability)
 from normalization import RobustScalerNorm, ZScoreNormalizationNorm
 from feature_selection import SelectKBestFilter, TreeBasedSelection
 from balance import SMOTESampler, BorderlineSMOTESampler

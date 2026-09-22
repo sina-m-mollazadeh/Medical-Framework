@@ -1,0 +1,745 @@
+"""
+semantic.py
+
+Two-stage semantic column inference for the multilingual CVD ontology.
+
+Stage 1: deterministic ontology inference using aliases, dtype, values,
+         expected ranges and optional ontology metadata.
+Stage 2: only unresolved columns are encoded with SapBERT-XLMR-large via
+         generate_embedding.py and compared with all_embed_ontology.json.
+
+The system is deliberately conservative: an uncertain embedding match is
+returned as UNKNOWN rather than being forced into a medical concept.
+
+Typical usage:
+    from semantic import SemanticInferencer, SemanticDataset
+
+    inferencer = SemanticInferencer(
+        ontology_path="cvd_ontology.json",
+        embedding_index_path="all_embed_ontology.json",
+        embedding_threshold=0.88,
+        embedding_margin=0.05,
+    )
+
+    schema = inferencer.infer(df)
+    dataset = SemanticDataset(df, schema)
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import unicodedata
+from dataclasses import asdict, dataclass, field
+from difflib import SequenceMatcher
+from pathlib import Path
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
+
+import numpy as np
+import pandas as pd
+
+from generate_embedding import generate_embeddings
+
+
+DEFAULT_ONTOLOGY_PATH = "cvd_ontology.json"
+DEFAULT_EMBEDDING_INDEX_PATH = "all_embed_ontology.json"
+UNKNOWN = "UNKNOWN"
+
+# Conservative defaults. Increase rather than decrease these when false
+# inferences are more costly than missed inferences.
+DEFAULT_DETERMINISTIC_THRESHOLD = 0.80
+DEFAULT_DETERMINISTIC_MARGIN = 0.10
+DEFAULT_EMBEDDING_THRESHOLD = 0.88
+DEFAULT_EMBEDDING_MARGIN = 0.05
+
+
+def load_json(path: str | Path) -> Dict[str, Any]:
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"JSON file not found: {path}")
+    with path.open("r", encoding="utf-8") as f:
+        obj = json.load(f)
+    if not isinstance(obj, dict):
+        raise ValueError(f"Expected a JSON object in {path}")
+    return obj
+
+
+def normalize_text(value: Any) -> str:
+    """Conservative Unicode normalization for multilingual column names."""
+    if value is None:
+        return ""
+    s = unicodedata.normalize("NFKC", str(value).strip())
+    replacements = {
+        "ي": "ی", "ى": "ی", "ئ": "ی", "ك": "ک", "ۀ": "ه",
+        "ة": "ه", "ؤ": "و", "ـ": "", "\u200c": " ",
+        "\u200d": " ", "\ufeff": "",
+    }
+    s = "".join(replacements.get(c, c) for c in s)
+    s = s.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹",
+                                  "01234567890123456789"))
+    s = s.casefold()
+    s = re.sub(r"[_\-.\\/]+", " ", s)
+    s = "".join(c if c.isalnum() or c.isspace() else " " for c in s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def compact_normalize(value: Any) -> str:
+    return normalize_text(value).replace(" ", "")
+
+
+def string_similarity(a: str, b: str) -> float:
+    na, nb = normalize_text(a), normalize_text(b)
+    if not na or not nb:
+        return 0.0
+    if na == nb:
+        return 1.0
+    if compact_normalize(a) == compact_normalize(b):
+        return 0.985
+    char = SequenceMatcher(None, na, nb).ratio()
+    ta, tb = set(na.split()), set(nb.split())
+    if not ta or not tb:
+        return char
+    jaccard = len(ta & tb) / len(ta | tb)
+    containment = len(ta & tb) / min(len(ta), len(tb))
+    token = 0.65 * jaccard + 0.35 * containment
+    return 0.65 * char + 0.35 * token
+
+
+@dataclass(frozen=True)
+class Alias:
+    text: str
+    language: str
+    concept_id: str
+
+
+@dataclass
+class Concept:
+    concept_id: str
+    category: Optional[str]
+    data_type: Optional[str]
+    unit: Any
+    expected_range: Optional[Tuple[float, float]]
+    aliases: List[Alias]
+    raw: Dict[str, Any]
+
+
+class Ontology:
+    """Loads the user's JSON ontology and indexes every alias."""
+
+    def __init__(self, data: Mapping[str, Any]):
+        self.raw = dict(data)
+        self.name = data.get("ontology_name")
+        self.version = data.get("version")
+        self.languages = dict(data.get("languages", {}))
+        raw_concepts = data.get("concepts")
+        if not isinstance(raw_concepts, Mapping):
+            raise ValueError("Ontology must contain a 'concepts' object.")
+
+        self.concepts: Dict[str, Concept] = {}
+        self.aliases: Dict[str, List[Alias]] = {}
+        self.compact_aliases: Dict[str, List[Alias]] = {}
+
+        for concept_id, raw in raw_concepts.items():
+            if not isinstance(raw, Mapping):
+                raise ValueError(f"Concept '{concept_id}' must be an object.")
+            alias_map = raw.get("aliases", {}) or {}
+            if not isinstance(alias_map, Mapping):
+                raise ValueError(f"Aliases of '{concept_id}' must be an object.")
+
+            aliases: List[Alias] = []
+            for language, values in alias_map.items():
+                if isinstance(values, str):
+                    values = [values]
+                if not isinstance(values, list):
+                    raise ValueError(
+                        f"Aliases of '{concept_id}'/{language} must be a list."
+                    )
+                for value in values:
+                    if not isinstance(value, str) or not value.strip():
+                        continue
+                    alias = Alias(value.strip(), str(language), str(concept_id))
+                    aliases.append(alias)
+                    key = normalize_text(alias.text)
+                    self.aliases.setdefault(key, []).append(alias)
+                    self.compact_aliases.setdefault(
+                        compact_normalize(alias.text), []
+                    ).append(alias)
+
+            expected_range = raw.get("expected_range", raw.get("range"))
+            parsed_range = None
+            if isinstance(expected_range, (list, tuple)) and len(expected_range) == 2:
+                try:
+                    parsed_range = (float(expected_range[0]), float(expected_range[1]))
+                except (TypeError, ValueError):
+                    pass
+
+            self.concepts[str(concept_id)] = Concept(
+                concept_id=str(concept_id),
+                category=str(raw["category"]) if raw.get("category") is not None else None,
+                data_type=str(raw["data_type"]) if raw.get("data_type") is not None else None,
+                unit=raw.get("unit"),
+                expected_range=parsed_range,
+                aliases=aliases,
+                raw=dict(raw),
+            )
+
+    @classmethod
+    def from_json(cls, path: str | Path) -> "Ontology":
+        return cls(load_json(path))
+
+
+@dataclass
+class ColumnProfile:
+    name: str
+    normalized_name: str
+    dtype: str
+    numeric: bool
+    boolean: bool
+    datetime: bool
+    non_null: int
+    unique: int
+    missing: int
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
+    samples: List[Any] = field(default_factory=list)
+    patterns: List[str] = field(default_factory=list)
+
+    @classmethod
+    def from_series(cls, name: str, s: pd.Series, sample_size: int = 20):
+        nonnull = s.dropna()
+        numeric = bool(pd.api.types.is_numeric_dtype(s) and not pd.api.types.is_bool_dtype(s))
+        boolean = bool(pd.api.types.is_bool_dtype(s))
+        datetime = bool(pd.api.types.is_datetime64_any_dtype(s))
+        samples = nonnull.head(sample_size).tolist()
+        min_value = max_value = None
+        if numeric and len(nonnull):
+            n = pd.to_numeric(nonnull, errors="coerce").dropna()
+            if len(n):
+                min_value, max_value = float(n.min()), float(n.max())
+        patterns = []
+        strings = [str(x).strip() for x in samples]
+        if strings and all(re.fullmatch(r"[01]", x) for x in strings):
+            patterns.append("binary_numeric")
+        if strings and all(re.fullmatch(r"\d{4}[-/]\d{1,2}[-/]\d{1,2}", x) for x in strings):
+            patterns.append("date_like")
+        return cls(
+            name=str(name), normalized_name=normalize_text(name), dtype=str(s.dtype),
+            numeric=numeric, boolean=boolean, datetime=datetime,
+            non_null=int(nonnull.size), unique=int(nonnull.nunique()),
+            missing=int(s.isna().sum()), min_value=min_value, max_value=max_value,
+            samples=samples, patterns=patterns,
+        )
+
+
+def profile_dataset(data: pd.DataFrame, sample_size: int = 20) -> List[ColumnProfile]:
+    if not isinstance(data, pd.DataFrame):
+        raise TypeError("data must be a pandas DataFrame")
+    return [ColumnProfile.from_series(str(c), data[c], sample_size) for c in data.columns]
+
+
+@dataclass
+class Candidate:
+    concept_id: str
+    score: float
+    matched_text: Optional[str] = None
+    language: Optional[str] = None
+    method: Optional[str] = None
+
+
+@dataclass
+class SemanticMatch:
+    column: str
+    concept_id: str
+    confidence: float
+    method: str
+    status: str
+    matched_text: Optional[str] = None
+    language: Optional[str] = None
+    category: Optional[str] = None
+    data_type: Optional[str] = None
+    unit: Any = None
+    reason: Optional[str] = None
+    second_best_concept: Optional[str] = None
+    second_best_score: Optional[float] = None
+    margin: Optional[float] = None
+    candidates: List[Candidate] = field(default_factory=list)
+
+    @property
+    def is_known(self) -> bool:
+        return self.status == "KNOWN"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class SemanticSchema:
+    matches: Dict[str, SemanticMatch]
+    ontology_name: Optional[str]
+    ontology_version: Optional[str]
+    embedding_model: Optional[str]
+
+    def __getitem__(self, column: str) -> SemanticMatch:
+        return self.matches[column]
+
+    def known_columns(self) -> Dict[str, str]:
+        return {c: m.concept_id for c, m in self.matches.items() if m.is_known}
+
+    def unknown_columns(self) -> List[str]:
+        return [c for c, m in self.matches.items() if not m.is_known]
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "ontology_name": self.ontology_name,
+            "ontology_version": self.ontology_version,
+            "embedding_model": self.embedding_model,
+            "matches": {c: m.to_dict() for c, m in self.matches.items()},
+        }
+
+    def to_dataframe(self) -> pd.DataFrame:
+        rows = []
+        for match in self.matches.values():
+            d = match.to_dict()
+            d.pop("candidates", None)
+            rows.append(d)
+        return pd.DataFrame(rows)
+
+
+class EmbeddingIndex:
+    """Loads all_embed_ontology.json and keeps its vectors in RAM."""
+
+    def __init__(self, data: Mapping[str, Any]):
+        self.raw = dict(data)
+        encoder = data.get("encoder", {})
+        self.model_name = encoder.get("model_name")
+        self.dimension = int(encoder.get("embedding_dimension", 0))
+        raw_entries = data.get("embeddings", [])
+        if not isinstance(raw_entries, list):
+            raise ValueError("Embedding index 'embeddings' must be a list.")
+
+        self.entries = []
+        vectors = []
+        for i, item in enumerate(raw_entries):
+            if not isinstance(item, Mapping):
+                raise ValueError(f"Embedding entry {i} must be an object.")
+            vector = np.asarray(item.get("embedding", []), dtype=np.float32)
+            if vector.ndim != 1:
+                raise ValueError(f"Embedding entry {i} is not one-dimensional.")
+            if self.dimension and len(vector) != self.dimension:
+                raise ValueError(
+                    f"Embedding entry {i} has dimension {len(vector)}, "
+                    f"expected {self.dimension}."
+                )
+            self.entries.append({
+                "text": str(item.get("text", "")),
+                "concepts": [str(x) for x in item.get("concepts", [])],
+                "languages": [str(x) for x in item.get("languages", [])],
+                "embedding": vector,
+            })
+            vectors.append(vector)
+
+        self.matrix = np.vstack(vectors).astype(np.float32) if vectors else np.empty((0, self.dimension), dtype=np.float32)
+        if len(self.matrix):
+            norms = np.linalg.norm(self.matrix, axis=1, keepdims=True)
+            norms[norms == 0] = 1.0
+            self.matrix /= norms
+
+    @classmethod
+    def from_json(cls, path: str | Path) -> "EmbeddingIndex":
+        return cls(load_json(path))
+
+    def search(self, query: np.ndarray, top_k: int = 10) -> List[Tuple[int, float]]:
+        if not len(self.matrix):
+            return []
+        q = np.asarray(query, dtype=np.float32).reshape(-1)
+        if len(q) != self.matrix.shape[1]:
+            raise ValueError(
+                f"Query embedding dimension {len(q)} does not match "
+                f"ontology dimension {self.matrix.shape[1]}."
+            )
+        norm = np.linalg.norm(q)
+        if norm == 0:
+            return []
+        q /= norm
+        sims = self.matrix @ q
+        k = min(max(1, int(top_k)), len(sims))
+        if k < len(sims):
+            ids = np.argpartition(-sims, k - 1)[:k]
+            ids = ids[np.argsort(-sims[ids])]
+        else:
+            ids = np.argsort(-sims)
+        return [(int(i), float(sims[i])) for i in ids]
+
+
+class DeterministicMatcher:
+    """First-stage, explainable ontology inference."""
+
+    def __init__(self, ontology: Ontology, threshold: float, margin: float):
+        self.ontology = ontology
+        self.threshold = threshold
+        self.margin = margin
+
+    def match(self, p: ColumnProfile) -> Optional[SemanticMatch]:
+        # Exact normalized alias. If one alias maps to multiple concepts,
+        # refuse to choose and let the embedding stage try.
+        aliases = self.ontology.aliases.get(p.normalized_name, [])
+        if not aliases:
+            aliases = self.ontology.compact_aliases.get(compact_normalize(p.name), [])
+        concept_ids = {a.concept_id for a in aliases}
+        if len(concept_ids) == 1:
+            a = aliases[0]
+            c = self.ontology.concepts[a.concept_id]
+            return SemanticMatch(
+                p.name, a.concept_id, 1.0, "deterministic", "KNOWN",
+                a.text, a.language, c.category, c.data_type, c.unit,
+                "Exact ontology alias match.", None, None, 1.0,
+                [Candidate(a.concept_id, 1.0, a.text, a.language, "deterministic")],
+            )
+
+        # Weighted deterministic evidence for aliases. Name evidence is
+        # dominant, while observed values/dtype/range can support it.
+        ranked = []
+        for cid, concept in self.ontology.concepts.items():
+            best = None
+            for alias in concept.aliases:
+                name_score = string_similarity(p.name, alias.text)
+                value_score = self._value_score(p, concept)
+                dtype_score = self._dtype_score(p, concept)
+                range_score = self._range_score(p, concept)
+                pattern_score = self._pattern_score(p, concept)
+                score = (
+                    0.60 * name_score + 0.20 * value_score +
+                    0.10 * dtype_score + 0.05 * range_score +
+                    0.05 * pattern_score
+                )
+                item = (score, alias, name_score)
+                if best is None or score > best[0]:
+                    best = item
+            if best:
+                ranked.append((cid, *best))
+
+        ranked.sort(key=lambda x: x[1], reverse=True)
+        if not ranked:
+            return None
+        cid, score, alias, name_score = ranked[0]
+        second_score = ranked[1][1] if len(ranked) > 1 else None
+        margin = score - second_score if second_score is not None else score
+
+        # Fuzzy deterministic matching is intentionally strict. This prevents
+        # a short abbreviation from accidentally becoming an unrelated concept.
+        if score < self.threshold or name_score < 0.92:
+            return None
+        if second_score is not None and margin < self.margin:
+            return None
+
+        c = self.ontology.concepts[cid]
+        candidates = [
+            Candidate(x[0], float(x[1]), x[2].text, x[2].language, "deterministic")
+            for x in ranked[:5]
+        ]
+        return SemanticMatch(
+            p.name, cid, float(score), "deterministic", "KNOWN",
+            alias.text, alias.language, c.category, c.data_type, c.unit,
+            "High-confidence deterministic ontology match.",
+            ranked[1][0] if len(ranked) > 1 else None,
+            float(second_score) if second_score is not None else None,
+            float(margin), candidates,
+        )
+
+    @staticmethod
+    def _dtype_score(p: ColumnProfile, c: Concept) -> float:
+        dtype = normalize_text(c.data_type or "")
+        if dtype in {"numeric", "continuous", "float", "integer", "number"}:
+            return 1.0 if p.numeric else 0.0
+        if dtype in {"categorical", "category", "nominal", "ordinal", "binary", "boolean"}:
+            return 1.0 if p.boolean else (0.85 if p.unique <= 10 else 0.0)
+        if dtype in {"identifier", "id", "string", "text"}:
+            return 0.8 if not p.numeric else 0.2
+        if dtype in {"date", "datetime", "timestamp"}:
+            return 1.0 if p.datetime else 0.0
+        return 0.0
+
+    @staticmethod
+    def _range_score(p: ColumnProfile, c: Concept) -> float:
+        if c.expected_range is None or p.min_value is None or p.max_value is None:
+            return 0.0
+        lo, hi = c.expected_range
+        if p.min_value >= lo and p.max_value <= hi:
+            return 1.0
+        width = max(hi - lo, 1.0)
+        violation = max(0.0, lo - p.min_value) + max(0.0, p.max_value - hi)
+        return 0.5 if violation / width <= 0.05 else 0.0
+
+    @staticmethod
+    def _value_score(p: ColumnProfile, c: Concept) -> float:
+        definitions = []
+        raw = c.raw
+        for key in ("value_aliases", "allowed_values", "values", "categories"):
+            value = raw.get(key)
+            if isinstance(value, Mapping):
+                for vals in value.values():
+                    definitions.extend(vals if isinstance(vals, list) else [vals])
+            elif isinstance(value, list):
+                definitions.extend(value)
+            elif isinstance(value, str):
+                definitions.append(value)
+        if not definitions or not p.samples:
+            return 0.0
+        allowed = {normalize_text(x) for x in definitions if normalize_text(x)}
+        if not allowed:
+            return 0.0
+        return sum(normalize_text(x) in allowed for x in p.samples) / len(p.samples)
+
+    @staticmethod
+    def _pattern_score(p: ColumnProfile, c: Concept) -> float:
+        expected = c.raw.get("patterns", [])
+        if isinstance(expected, str):
+            expected = [expected]
+        if isinstance(expected, list) and expected:
+            return 1.0 if set(p.patterns) & {normalize_text(x) for x in expected} else 0.0
+        return 0.0
+
+
+class EmbeddingMatcher:
+    """Second-stage conservative matcher over the persistent ontology vectors."""
+
+    def __init__(self, ontology: Ontology, index: EmbeddingIndex,
+                 threshold: float, margin: float, top_k: int = 10):
+        self.ontology, self.index = ontology, index
+        self.threshold, self.margin, self.top_k = threshold, margin, max(2, top_k)
+
+    def match(self, column: str, embedding: np.ndarray) -> SemanticMatch:
+        hits = self.index.search(embedding, self.top_k)
+        if not hits:
+            return self._unknown(column, "No ontology embedding candidates.")
+
+        # Aggregate by concept using the best alias score. This avoids giving
+        # concepts with many aliases an artificial advantage.
+        best_by_concept: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+        for idx, score in hits:
+            entry = self.index.entries[idx]
+            for cid in entry["concepts"]:
+                old = best_by_concept.get(cid)
+                if old is None or score > old[0]:
+                    best_by_concept[cid] = (score, entry)
+
+        ranked = sorted(best_by_concept.items(), key=lambda x: x[1][0], reverse=True)
+        if not ranked:
+            return self._unknown(column, "Embedding candidates have no concepts.")
+
+        best_id, (best_score, best_entry) = ranked[0]
+        second_id = ranked[1][0] if len(ranked) > 1 else None
+        second_score = ranked[1][1][0] if len(ranked) > 1 else None
+        margin = best_score - second_score if second_score is not None else best_score
+        accepted = best_score >= self.threshold and (
+            second_score is None or margin >= self.margin
+        )
+
+        candidates = [
+            Candidate(cid, float(score), entry["text"],
+                      entry["languages"][0] if entry["languages"] else None,
+                      "embedding")
+            for cid, (score, entry) in ranked[:5]
+        ]
+
+        if not accepted or best_id not in self.ontology.concepts:
+            return SemanticMatch(
+                column, UNKNOWN, float(best_score), "embedding", "UNKNOWN",
+                best_entry["text"],
+                best_entry["languages"][0] if best_entry["languages"] else None,
+                reason=(
+                    "Embedding candidate rejected because similarity was below "
+                    "the threshold or the top concepts were too close."
+                ),
+                second_best_concept=second_id,
+                second_best_score=float(second_score) if second_score is not None else None,
+                margin=float(margin), candidates=candidates,
+            )
+
+        c = self.ontology.concepts[best_id]
+        return SemanticMatch(
+            column, best_id, float(best_score), "embedding", "KNOWN",
+            best_entry["text"],
+            best_entry["languages"][0] if best_entry["languages"] else None,
+            c.category, c.data_type, c.unit,
+            "High-confidence SapBERT-XLMR embedding match.",
+            second_id,
+            float(second_score) if second_score is not None else None,
+            float(margin), candidates,
+        )
+
+    @staticmethod
+    def _unknown(column: str, reason: str) -> SemanticMatch:
+        return SemanticMatch(column, UNKNOWN, 0.0, "embedding", "UNKNOWN", reason=reason)
+
+
+class SemanticInferencer:
+    """
+    Complete inference pipeline.
+
+    The embedding model is instantiated only if there are unresolved columns.
+    Thus a dataset whose columns are all resolved deterministically never
+    invokes SapBERT at all.
+    """
+
+    def __init__(self,
+                 ontology: Optional[Ontology] = None,
+                 ontology_path: str | Path = DEFAULT_ONTOLOGY_PATH,
+                 embedding_index: Optional[EmbeddingIndex] = None,
+                 embedding_index_path: str | Path = DEFAULT_EMBEDDING_INDEX_PATH,
+                 deterministic_threshold: float = DEFAULT_DETERMINISTIC_THRESHOLD,
+                 deterministic_margin: float = DEFAULT_DETERMINISTIC_MARGIN,
+                 embedding_threshold: float = DEFAULT_EMBEDDING_THRESHOLD,
+                 embedding_margin: float = DEFAULT_EMBEDDING_MARGIN,
+                 embedding_top_k: int = 10,
+                 profile_sample_size: int = 20,
+                 embedding_device: Optional[str] = None,
+                 embedding_batch_size: int = 128):
+        self.ontology = ontology or Ontology.from_json(ontology_path)
+        self.embedding_index = embedding_index or EmbeddingIndex.from_json(embedding_index_path)
+        self.deterministic = DeterministicMatcher(
+            self.ontology, deterministic_threshold, deterministic_margin
+        )
+        self.embedding = EmbeddingMatcher(
+            self.ontology, self.embedding_index,
+            embedding_threshold, embedding_margin, embedding_top_k
+        )
+        self.profile_sample_size = profile_sample_size
+        self.embedding_device = embedding_device
+        self.embedding_batch_size = embedding_batch_size
+
+    def infer(self, data: pd.DataFrame) -> SemanticSchema:
+        profiles = profile_dataset(data, self.profile_sample_size)
+        matches: Dict[str, SemanticMatch] = {}
+        unresolved: List[ColumnProfile] = []
+
+        # Stage 1: deterministic inference.
+        for p in profiles:
+            match = self.deterministic.match(p)
+            if match is None:
+                unresolved.append(p)
+            else:
+                matches[p.name] = match
+
+        # Stage 2: ONLY unresolved columns go to the encoder.
+        if unresolved:
+            names = [p.name for p in unresolved]
+            query_vectors = generate_embeddings(
+                names,
+                batch_size=self.embedding_batch_size,
+                normalize=True,
+                show_progress=True,
+                device=self.embedding_device,
+            )
+            if len(query_vectors) != len(unresolved):
+                raise RuntimeError("Embedding count does not match unresolved columns.")
+            for p, vector in zip(unresolved, query_vectors):
+                matches[p.name] = self.embedding.match(p.name, vector)
+
+        return SemanticSchema(
+            matches=matches,
+            ontology_name=self.ontology.name,
+            ontology_version=self.ontology.version,
+            embedding_model=self.embedding_index.model_name,
+        )
+
+    def infer_columns(self, column_names: Sequence[str]) -> SemanticSchema:
+        """Infer from names only, useful for testing without a dataframe."""
+        matches: Dict[str, SemanticMatch] = {}
+        unresolved = []
+        for name in column_names:
+            p = ColumnProfile(
+                name=str(name), normalized_name=normalize_text(name), dtype="unknown",
+                numeric=False, boolean=False, datetime=False,
+                non_null=0, unique=0, missing=0,
+            )
+            m = self.deterministic.match(p)
+            if m is None:
+                unresolved.append(str(name))
+            else:
+                matches[str(name)] = m
+        if unresolved:
+            vectors = generate_embeddings(
+                unresolved, batch_size=self.embedding_batch_size,
+                normalize=True, show_progress=True, device=self.embedding_device,
+            )
+            for name, vector in zip(unresolved, vectors):
+                matches[name] = self.embedding.match(name, vector)
+        return SemanticSchema(
+            matches=matches,
+            ontology_name=self.ontology.name,
+            ontology_version=self.ontology.version,
+            embedding_model=self.embedding_index.model_name,
+        )
+
+
+class SemanticDataset:
+    """Container connecting a dataframe with its inferred semantic schema."""
+
+    def __init__(self, data: pd.DataFrame, schema: SemanticSchema):
+        if not isinstance(data, pd.DataFrame):
+            raise TypeError("data must be a pandas DataFrame")
+        self.data = data
+        self.schema = schema
+        self.column_to_concept = schema.known_columns()
+        self.concept_to_columns: Dict[str, List[str]] = {}
+        for col, concept in self.column_to_concept.items():
+            self.concept_to_columns.setdefault(concept, []).append(col)
+
+    def columns_for(self, concept_id: str) -> List[str]:
+        return list(self.concept_to_columns.get(concept_id, []))
+
+    def unknown_columns(self) -> List[str]:
+        return self.schema.unknown_columns()
+
+
+def infer_semantics(data: pd.DataFrame, **kwargs: Any) -> SemanticSchema:
+    """Convenience function for one-shot inference."""
+    return SemanticInferencer(**kwargs).infer(data)
+
+
+def load_ontology(path: str | Path = DEFAULT_ONTOLOGY_PATH) -> Ontology:
+    return Ontology.from_json(path)
+
+
+def load_embedding_index(path: str | Path = DEFAULT_EMBEDDING_INDEX_PATH) -> EmbeddingIndex:
+    return EmbeddingIndex.from_json(path)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Infer CVD dataset column semantics.")
+    parser.add_argument("dataset", help="CSV or XLSX dataset")
+    parser.add_argument("--ontology", default=DEFAULT_ONTOLOGY_PATH)
+    parser.add_argument("--embeddings", default=DEFAULT_EMBEDDING_INDEX_PATH)
+    parser.add_argument("--embedding-threshold", type=float, default=DEFAULT_EMBEDDING_THRESHOLD)
+    parser.add_argument("--embedding-margin", type=float, default=DEFAULT_EMBEDDING_MARGIN)
+    parser.add_argument("--deterministic-threshold", type=float, default=DEFAULT_DETERMINISTIC_THRESHOLD)
+    parser.add_argument("--deterministic-margin", type=float, default=DEFAULT_DETERMINISTIC_MARGIN)
+    parser.add_argument("--device", choices=["cpu", "cuda"], default=None)
+    parser.add_argument("--batch-size", type=int, default=128)
+    args = parser.parse_args()
+
+    path = Path(args.dataset)
+    if path.suffix.lower() == ".csv":
+        df = pd.read_csv(path)
+    elif path.suffix.lower() in {".xlsx", ".xls"}:
+        df = pd.read_excel(path)
+    else:
+        raise ValueError("Dataset must be CSV, XLSX, or XLS.")
+
+    engine = SemanticInferencer(
+        ontology_path=args.ontology,
+        embedding_index_path=args.embeddings,
+        embedding_threshold=args.embedding_threshold,
+        embedding_margin=args.embedding_margin,
+        deterministic_threshold=args.deterministic_threshold,
+        deterministic_margin=args.deterministic_margin,
+        embedding_device=args.device,
+        embedding_batch_size=args.batch_size,
+    )
+    schema = engine.infer(df)
+    print(schema.to_dataframe().to_string(index=False))
+    print(f"\nKnown: {len(schema.known_columns())}")
+    print(f"Unknown: {len(schema.unknown_columns())}")

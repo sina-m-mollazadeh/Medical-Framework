@@ -136,10 +136,7 @@ def load_data(path, y_column):
     else:
         raise ValueError("File format not supported.")
     
-    # Drop completely vacant configurations
-    threshold = 0.9
-    valid_cols = data.columns[data.notna().mean() >= threshold]
-    data = data[valid_cols]
+   
     data = data.dropna(subset=[y_column])    
     data = sanitize_column_names(data, y_column)
     

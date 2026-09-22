@@ -1,0 +1,1869 @@
+{
+  "ontology_name": "multilingual_cardiovascular_medical_ontology",
+  "version": "1.0.0",
+  "description": "Multilingual semantic ontology for cardiovascular and general clinical datasets.",
+  "languages": {
+    "en": "English",
+    "fr": "French",
+    "de": "German",
+    "fa": "Persian",
+    "ar": "Arabic",
+    "zh": "Chinese"
+  },
+
+  "concepts": {
+    "patient_id": {
+      "category": "administrative",
+      "data_type": "identifier",
+      "aliases": {
+        "en": [
+          "patient id",
+          "patient identifier",
+          "patient number",
+          "patient code",
+          "subject id",
+          "subject number",
+          "record id",
+          "id"
+        ],
+        "fr": [
+          "identifiant patient",
+          "id patient",
+          "numéro patient",
+          "code patient",
+          "identifiant du patient"
+        ],
+        "de": [
+          "patienten-id",
+          "patientenidentifikation",
+          "patientennummer",
+          "patientencode",
+          "probanden-id"
+        ],
+        "fa": [
+          "شناسه بیمار",
+          "کد بیمار",
+          "شماره بیمار",
+          "شناسه فرد",
+          "شناسه پرونده"
+        ],
+        "ar": [
+          "معرف المريض",
+          "رقم المريض",
+          "رمز المريض",
+          "هوية المريض",
+          "معرف المريض"
+        ],
+        "zh": [
+          "患者编号",
+          "患者ID",
+          "患者标识",
+          "病人编号",
+          "病人ID",
+          "受试者编号"
+        ]
+      }
+    },
+
+    "age": {
+      "category": "demographics",
+      "data_type": "numeric",
+      "unit": "years",
+      "expected_range": [0, 120],
+      "aliases": {
+        "en": [
+          "age",
+          "patient age",
+          "age years",
+          "age in years",
+          "years old",
+          "patient years"
+        ],
+        "fr": [
+          "âge",
+          "âge du patient",
+          "âge en années",
+          "années",
+          "âge patient"
+        ],
+        "de": ["alter", "patientenalter", "alter in jahren", "lebensalter"],
+        "fa": ["سن", "سن بیمار", "سن به سال", "سن فرد"],
+        "ar": ["العمر", "عمر المريض", "العمر بالسنوات", "سن المريض"],
+        "zh": ["年龄", "患者年龄", "病人年龄", "年龄岁数", "年龄（岁）"]
+      }
+    },
+
+    "gender": {
+      "category": "demographics",
+      "data_type": "categorical",
+      "aliases": {
+        "en": [
+          "gender",
+          "sex",
+          "patient gender",
+          "patient sex",
+          "biological sex",
+          "sex of patient"
+        ],
+        "fr": ["genre", "sexe", "sexe du patient", "sexe biologique"],
+        "de": [
+          "geschlecht",
+          "sex",
+          "patientengeschlecht",
+          "biologisches geschlecht"
+        ],
+        "fa": ["جنسیت", "جنس", "جنسیت بیمار", "جنس بیولوژیکی"],
+        "ar": ["الجنس", "جنس المريض", "الجنس البيولوجي", "نوع الجنس"],
+        "zh": ["性别", "患者性别", "病人性别", "生理性别", "性别类型"]
+      },
+      "values": {
+        "male": {
+          "en": ["male", "man", "m"],
+          "fr": ["homme", "masculin", "m"],
+          "de": ["männlich", "mann", "m"],
+          "fa": ["مرد", "مذکر"],
+          "ar": ["ذكر", "رجل"],
+          "zh": ["男", "男性", "男士"]
+        },
+        "female": {
+          "en": ["female", "woman", "f"],
+          "fr": ["femme", "féminin", "f"],
+          "de": ["weiblich", "frau", "f"],
+          "fa": ["زن", "مونث"],
+          "ar": ["أنثى", "امرأة"],
+          "zh": ["女", "女性", "女士"]
+        },
+        "other": {
+          "en": ["other", "nonbinary", "non-binary"],
+          "fr": ["autre", "non binaire"],
+          "de": ["andere", "nichtbinär"],
+          "fa": ["سایر", "غیره"],
+          "ar": ["آخر", "أخرى"],
+          "zh": ["其他", "非二元"]
+        }
+      }
+    },
+
+    "height": {
+      "category": "anthropometrics",
+      "data_type": "numeric",
+      "unit": "cm",
+      "expected_range": [30, 250],
+      "aliases": {
+        "en": [
+          "height",
+          "body height",
+          "patient height",
+          "stature",
+          "height cm"
+        ],
+        "fr": ["taille", "hauteur", "taille corporelle", "taille du patient"],
+        "de": ["größe", "körpergröße", "patientengröße"],
+        "fa": ["قد", "قد بیمار", "ارتفاع بدن"],
+        "ar": ["الطول", "طول المريض", "طول الجسم"],
+        "zh": ["身高", "患者身高", "身体高度", "身高厘米"]
+      }
+    },
+
+    "weight": {
+      "category": "anthropometrics",
+      "data_type": "numeric",
+      "unit": "kg",
+      "expected_range": [1, 400],
+      "aliases": {
+        "en": ["weight", "body weight", "patient weight", "weight kg"],
+        "fr": ["poids", "poids corporel", "poids du patient"],
+        "de": ["gewicht", "körpergewicht", "patientengewicht"],
+        "fa": ["وزن", "وزن بدن", "وزن بیمار"],
+        "ar": ["الوزن", "وزن الجسم", "وزن المريض"],
+        "zh": ["体重", "患者体重", "身体重量"]
+      }
+    },
+
+    "bmi": {
+      "category": "anthropometrics",
+      "data_type": "numeric",
+      "unit": "kg/m2",
+      "expected_range": [10, 100],
+      "aliases": {
+        "en": ["bmi", "body mass index", "body-mass index"],
+        "fr": ["imc", "indice de masse corporelle"],
+        "de": ["bmi", "body mass index", "körpermassenindex"],
+        "fa": ["شاخص توده بدنی", "نمایه توده بدنی", "BMI"],
+        "ar": ["مؤشر كتلة الجسم", "مؤشر كتلة الجسم BMI"],
+        "zh": ["体质指数", "身体质量指数", "BMI", "体重指数"]
+      }
+    },
+
+    "systolic_blood_pressure": {
+      "category": "vital_signs",
+      "data_type": "numeric",
+      "unit": "mmHg",
+      "expected_range": [50, 300],
+      "aliases": {
+        "en": [
+          "systolic blood pressure",
+          "systolic bp",
+          "systolic",
+          "sbp",
+          "sys bp"
+        ],
+        "fr": [
+          "pression artérielle systolique",
+          "tension artérielle systolique",
+          "pas",
+          "pression systolique"
+        ],
+        "de": [
+          "systolischer blutdruck",
+          "systolischer Blutdruck",
+          "systole",
+          "systolischer bd",
+          "sbp"
+        ],
+        "fa": [
+          "فشار خون سیستولیک",
+          "فشار سیستولی",
+          "فشار خون بالا",
+          "سیستولیک"
+        ],
+        "ar": ["ضغط الدم الانقباضي", "الضغط الانقباضي", "الضغط الانقباضي للدم"],
+        "zh": ["收缩压", "收缩期血压", "收缩血压", "收缩压SBP"]
+      }
+    },
+
+    "diastolic_blood_pressure": {
+      "category": "vital_signs",
+      "data_type": "numeric",
+      "unit": "mmHg",
+      "expected_range": [30, 200],
+      "aliases": {
+        "en": [
+          "diastolic blood pressure",
+          "diastolic bp",
+          "diastolic",
+          "dbp",
+          "dia bp"
+        ],
+        "fr": [
+          "pression artérielle diastolique",
+          "tension artérielle diastolique",
+          "pad",
+          "pression diastolique"
+        ],
+        "de": [
+          "diastolischer blutdruck",
+          "diastolischer Blutdruck",
+          "diastole",
+          "dbp"
+        ],
+        "fa": ["فشار خون دیاستولیک", "فشار دیاستولی", "دیاستولیک"],
+        "ar": ["ضغط الدم الانبساطي", "الضغط الانبساطي"],
+        "zh": ["舒张压", "舒张期血压", "舒张血压", "舒张压DBP"]
+      }
+    },
+
+    "blood_pressure": {
+      "category": "vital_signs",
+      "data_type": "numeric_or_structured",
+      "unit": "mmHg",
+      "aliases": {
+        "en": [
+          "blood pressure",
+          "bp",
+          "arterial pressure",
+          "blood pressure reading"
+        ],
+        "fr": [
+          "pression artérielle",
+          "tension artérielle",
+          "pression sanguine",
+          "pa"
+        ],
+        "de": ["blutdruck", "arterieller blutdruck", "blutdruckwert"],
+        "fa": ["فشار خون", "فشار شریانی", "فشار خون شریانی"],
+        "ar": ["ضغط الدم", "ضغط الدم الشرياني", "ضغط شرياني"],
+        "zh": ["血压", "血压值", "动脉血压"]
+      }
+    },
+
+    "heart_rate": {
+      "category": "vital_signs",
+      "data_type": "numeric",
+      "unit": "bpm",
+      "expected_range": [20, 250],
+      "aliases": {
+        "en": [
+          "heart rate",
+          "pulse",
+          "pulse rate",
+          "hr",
+          "heart beats",
+          "beats per minute"
+        ],
+        "fr": ["fréquence cardiaque", "pouls", "rythme cardiaque", "fc"],
+        "de": ["herzfrequenz", "puls", "herzschlagfrequenz", "hf"],
+        "fa": ["ضربان قلب", "تعداد ضربان قلب", "نبض", "میزان ضربان قلب"],
+        "ar": ["معدل ضربات القلب", "نبض", "معدل النبض", "ضربات القلب"],
+        "zh": ["心率", "脉搏", "心跳频率", "每分钟心跳"]
+      }
+    },
+
+    "respiratory_rate": {
+      "category": "vital_signs",
+      "data_type": "numeric",
+      "unit": "breaths_per_minute",
+      "expected_range": [3, 80],
+      "aliases": {
+        "en": ["respiratory rate", "breathing rate", "respirations", "rr"],
+        "fr": ["fréquence respiratoire", "rythme respiratoire", "respirations"],
+        "de": ["atemfrequenz", "atemfrequenz pro minute", "atemzüge"],
+        "fa": ["تعداد تنفس", "نرخ تنفس", "فرکانس تنفسی"],
+        "ar": ["معدل التنفس", "معدل التنفس في الدقيقة", "عدد مرات التنفس"],
+        "zh": ["呼吸频率", "呼吸率", "每分钟呼吸次数"]
+      }
+    },
+
+    "oxygen_saturation": {
+      "category": "vital_signs",
+      "data_type": "numeric",
+      "unit": "percent",
+      "expected_range": [50, 100],
+      "aliases": {
+        "en": [
+          "oxygen saturation",
+          "oxygen sat",
+          "spo2",
+          "o2 saturation",
+          "blood oxygen"
+        ],
+        "fr": [
+          "saturation en oxygène",
+          "saturation en o2",
+          "spo2",
+          "saturation d'oxygène"
+        ],
+        "de": ["sauerstoffsättigung", "sauerstoffsättigung im blut", "spo2"],
+        "fa": ["اشباع اکسیژن", "سطح اکسیژن خون", "اشباع اکسیژن خون", "SpO2"],
+        "ar": [
+          "تشبع الأكسجين",
+          "نسبة تشبع الأكسجين",
+          "تشبع الدم بالأكسجين",
+          "SpO2"
+        ],
+        "zh": ["血氧饱和度", "血氧", "血氧饱和度SpO2", "氧饱和度"]
+      }
+    },
+
+    "body_temperature": {
+      "category": "vital_signs",
+      "data_type": "numeric",
+      "unit": "celsius",
+      "expected_range": [25, 45],
+      "aliases": {
+        "en": [
+          "temperature",
+          "body temperature",
+          "patient temperature",
+          "temp"
+        ],
+        "fr": [
+          "température",
+          "température corporelle",
+          "température du patient"
+        ],
+        "de": ["temperatur", "körpertemperatur", "patiententemperatur"],
+        "fa": ["دما", "دمای بدن", "دمای بیمار"],
+        "ar": ["درجة الحرارة", "درجة حرارة الجسم", "حرارة الجسم"],
+        "zh": ["体温", "身体温度", "患者体温"]
+      }
+    },
+
+    "cholesterol": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": ["cholesterol", "total cholesterol", "serum cholesterol", "tc"],
+        "fr": ["cholestérol", "cholestérol total", "cholestérol sérique"],
+        "de": ["cholesterin", "gesamtcholesterin", "serumcholesterin"],
+        "fa": ["کلسترول", "کلسترول تام", "کلسترول خون"],
+        "ar": ["الكوليسترول", "الكوليسترول الكلي", "كوليسترول الدم"],
+        "zh": ["胆固醇", "总胆固醇", "血清胆固醇"]
+      }
+    },
+
+    "hdl_cholesterol": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": [
+          "hdl",
+          "hdl cholesterol",
+          "high density lipoprotein",
+          "high-density lipoprotein"
+        ],
+        "fr": ["hdl", "cholestérol hdl", "lipoprotéines de haute densité"],
+        "de": ["hdl", "hdl-cholesterin", "high-density-lipoprotein"],
+        "fa": ["HDL", "کلسترول HDL", "لیپوپروتئین با چگالی بالا"],
+        "ar": ["HDL", "كوليسترول HDL", "البروتين الدهني عالي الكثافة"],
+        "zh": ["高密度脂蛋白", "高密度脂蛋白胆固醇", "HDL"]
+      }
+    },
+
+    "ldl_cholesterol": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": [
+          "ldl",
+          "ldl cholesterol",
+          "low density lipoprotein",
+          "low-density lipoprotein"
+        ],
+        "fr": ["ldl", "cholestérol ldl", "lipoprotéines de basse densité"],
+        "de": ["ldl", "ldl-cholesterin", "low-density-lipoprotein"],
+        "fa": ["LDL", "کلسترول LDL", "لیپوپروتئین با چگالی پایین"],
+        "ar": ["LDL", "كوليسترول LDL", "البروتين الدهني منخفض الكثافة"],
+        "zh": ["低密度脂蛋白", "低密度脂蛋白胆固醇", "LDL"]
+      }
+    },
+
+    "triglycerides": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": ["triglycerides", "triglyceride", "tg"],
+        "fr": ["triglycérides", "triglycéride"],
+        "de": ["triglyceride", "triglyzeride"],
+        "fa": ["تری گلیسیرید", "تری‌گلیسیرید", "TG"],
+        "ar": ["الدهون الثلاثية", "ثلاثي الغليسيريد"],
+        "zh": ["甘油三酯", "三酸甘油酯", "甘油三酸酯"]
+      }
+    },
+
+    "glucose": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": [
+          "glucose",
+          "blood glucose",
+          "blood sugar",
+          "blood glucose level",
+          "serum glucose"
+        ],
+        "fr": ["glucose", "glycémie", "glucose sanguin", "sucre sanguin"],
+        "de": ["glukose", "blutzucker", "blutglukose", "blutzuckerspiegel"],
+        "fa": ["گلوکز", "قند خون", "سطح قند خون", "گلوکز خون"],
+        "ar": ["الجلوكوز", "سكر الدم", "مستوى سكر الدم", "غلوكوز الدم"],
+        "zh": ["血糖", "葡萄糖", "血液葡萄糖", "血糖水平"]
+      }
+    },
+
+    "fasting_glucose": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": [
+          "fasting glucose",
+          "fasting blood glucose",
+          "fasting blood sugar",
+          "fbs"
+        ],
+        "fr": ["glycémie à jeun", "glucose à jeun", "glycémie de jeûne"],
+        "de": ["nüchternglukose", "nüchternblutzucker", "nüchternblutglukose"],
+        "fa": ["قند خون ناشتا", "گلوکز ناشتا", "قند ناشتا"],
+        "ar": ["سكر الدم الصائم", "جلوكوز الصيام", "سكر الصيام"],
+        "zh": ["空腹血糖", "空腹葡萄糖", "空腹血糖水平"]
+      }
+    },
+
+    "hba1c": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "unit": "percent",
+      "aliases": {
+        "en": [
+          "hba1c",
+          "hemoglobin a1c",
+          "glycated hemoglobin",
+          "glycosylated hemoglobin",
+          "a1c"
+        ],
+        "fr": ["hba1c", "hémoglobine glyquée", "hémoglobine a1c"],
+        "de": [
+          "hba1c",
+          "langzeitblutzucker",
+          "glykiertes hämoglobin",
+          "hämoglobin a1c"
+        ],
+        "fa": ["HbA1c", "هموگلوبین گلیکوزیله", "هموگلوبین A1c"],
+        "ar": ["الهيموغلوبين السكري", "HbA1c", "الهيموغلوبين الغليكوزيلاتي"],
+        "zh": ["糖化血红蛋白", "糖化血红蛋白A1c", "HbA1c"]
+      }
+    },
+
+    "creatinine": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": ["creatinine", "serum creatinine", "creatinine level"],
+        "fr": ["créatinine", "créatinine sérique"],
+        "de": ["kreatinin", "serumkreatinin"],
+        "fa": ["کراتینین", "کراتینین سرم", "سطح کراتینین"],
+        "ar": ["الكرياتينين", "كرياتينين المصل"],
+        "zh": ["肌酐", "血清肌酐", "肌酐水平"]
+      }
+    },
+
+    "troponin": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": [
+          "troponin",
+          "cardiac troponin",
+          "troponin i",
+          "troponin t",
+          "ctni",
+          "ctnt"
+        ],
+        "fr": [
+          "troponine",
+          "troponine cardiaque",
+          "troponine i",
+          "troponine t"
+        ],
+        "de": ["troponin", "herztroponin", "troponin i", "troponin t"],
+        "fa": ["تروپونین", "تروپونین قلبی", "تروپونین I", "تروپونین T"],
+        "ar": ["التروبونين", "تروبونين القلب", "تروبونين I", "تروبونين T"],
+        "zh": ["肌钙蛋白", "心肌肌钙蛋白", "肌钙蛋白I", "肌钙蛋白T"]
+      }
+    },
+
+    "hemoglobin": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": ["hemoglobin", "haemoglobin", "hb"],
+        "fr": ["hémoglobine", "hb"],
+        "de": ["hämoglobin", "hb"],
+        "fa": ["هموگلوبین", "Hb"],
+        "ar": ["الهيموغلوبين", "خضاب الدم", "Hb"],
+        "zh": ["血红蛋白", "血红素", "Hb"]
+      }
+    },
+
+    "white_blood_cell_count": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": [
+          "white blood cell count",
+          "wbc",
+          "white blood cells",
+          "leukocyte count"
+        ],
+        "fr": [
+          "globules blancs",
+          "numération leucocytaire",
+          "leucocytes",
+          "wbc"
+        ],
+        "de": ["weiße blutkörperchen", "leukozyten", "leukozytenzahl", "wbc"],
+        "fa": ["گلبول سفید", "تعداد گلبول سفید", "لکوسیت", "WBC"],
+        "ar": [
+          "خلايا الدم البيضاء",
+          "عدد كريات الدم البيضاء",
+          "الكريات البيضاء"
+        ],
+        "zh": ["白细胞计数", "白细胞", "白血球", "WBC"]
+      }
+    },
+
+    "smoking": {
+      "category": "lifestyle",
+      "data_type": "categorical",
+      "aliases": {
+        "en": [
+          "smoking",
+          "smoker",
+          "smoking status",
+          "smoking history",
+          "tobacco use",
+          "current smoker"
+        ],
+        "fr": ["tabagisme", "fumeur", "statut tabagique", "usage du tabac"],
+        "de": ["rauchen", "raucher", "rauchstatus", "tabakkonsum"],
+        "fa": [
+          "سیگار",
+          "سیگار کشیدن",
+          "وضعیت مصرف سیگار",
+          "سابقه سیگار",
+          "مصرف دخانیات"
+        ],
+        "ar": ["التدخين", "مدخن", "حالة التدخين", "استخدام التبغ"],
+        "zh": ["吸烟", "吸烟状态", "吸烟史", "烟草使用"]
+      },
+      "values": {
+        "yes": {
+          "en": ["yes", "true", "smoker", "current"],
+          "fr": ["oui", "vrai", "fumeur", "actuel"],
+          "de": ["ja", "wahr", "raucher", "aktuell"],
+          "fa": ["بله", "دارد", "سیگاری"],
+          "ar": ["نعم", "مدخن"],
+          "zh": ["是", "有", "吸烟"]
+        },
+        "no": {
+          "en": ["no", "false", "non-smoker", "never"],
+          "fr": ["non", "faux", "non-fumeur", "jamais"],
+          "de": ["nein", "falsch", "nichtraucher", "nie"],
+          "fa": ["خیر", "ندارد", "غیرسیگاری"],
+          "ar": ["لا", "غير مدخن"],
+          "zh": ["否", "没有", "不吸烟"]
+        },
+        "former": {
+          "en": ["former", "ex-smoker", "past smoker"],
+          "fr": ["ancien", "ancien fumeur"],
+          "de": ["ehemalig", "ehemaliger raucher"],
+          "fa": ["سابق", "سیگاری سابق"],
+          "ar": ["سابق", "مدخن سابق"],
+          "zh": ["曾经", "既往吸烟者"]
+        }
+      }
+    },
+
+    "alcohol_use": {
+      "category": "lifestyle",
+      "data_type": "categorical",
+      "aliases": {
+        "en": [
+          "alcohol",
+          "alcohol use",
+          "alcohol consumption",
+          "drinking",
+          "alcohol status"
+        ],
+        "fr": ["alcool", "consommation d'alcool", "usage d'alcool"],
+        "de": ["alkohol", "alkoholkonsum", "alkoholgebrauch"],
+        "fa": ["الکل", "مصرف الکل", "سابقه مصرف الکل"],
+        "ar": ["الكحول", "استهلاك الكحول", "تعاطي الكحول"],
+        "zh": ["饮酒", "酒精使用", "酒精摄入", "饮酒史"]
+      }
+    },
+
+    "physical_activity": {
+      "category": "lifestyle",
+      "data_type": "categorical_or_numeric",
+      "aliases": {
+        "en": [
+          "physical activity",
+          "exercise",
+          "exercise level",
+          "physical activity level",
+          "activity level"
+        ],
+        "fr": ["activité physique", "exercice", "niveau d'activité physique"],
+        "de": [
+          "körperliche aktivität",
+          "sport",
+          "bewegung",
+          "aktivitätsniveau"
+        ],
+        "fa": ["فعالیت بدنی", "ورزش", "سطح فعالیت بدنی", "میزان ورزش"],
+        "ar": ["النشاط البدني", "التمارين الرياضية", "مستوى النشاط البدني"],
+        "zh": ["体育活动", "身体活动", "运动", "身体活动水平"]
+      }
+    },
+
+    "hypertension": {
+      "category": "medical_history",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "hypertension",
+          "high blood pressure",
+          "hypertensive",
+          "htn",
+          "history of hypertension"
+        ],
+        "fr": [
+          "hypertension",
+          "hypertension artérielle",
+          "hta",
+          "antécédent d'hypertension"
+        ],
+        "de": ["bluthochdruck", "hypertonie", "arterielle hypertonie", "htn"],
+        "fa": ["فشار خون بالا", "پرفشاری خون", "هایپرتنشن", "سابقه فشار خون"],
+        "ar": ["ارتفاع ضغط الدم", "فرط ضغط الدم", "ضغط الدم المرتفع"],
+        "zh": ["高血压", "高血压病史", "血压升高", "高血压症"]
+      }
+    },
+
+    "diabetes": {
+      "category": "medical_history",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "diabetes",
+          "diabetes mellitus",
+          "diabetic",
+          "dm",
+          "diabetes status"
+        ],
+        "fr": ["diabète", "diabète sucré", "diabétique", "diabète mellitus"],
+        "de": [
+          "diabetes",
+          "diabetes mellitus",
+          "diabetiker",
+          "zuckerkrankheit"
+        ],
+        "fa": ["دیابت", "دیابت ملیتوس", "دیابتی", "قند خون"],
+        "ar": ["السكري", "داء السكري", "مريض السكري"],
+        "zh": ["糖尿病", "糖尿病史", "糖尿病患者"]
+      }
+    },
+
+    "obesity": {
+      "category": "medical_history",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["obesity", "obese", "obese status"],
+        "fr": ["obésité", "obèse"],
+        "de": ["adipositas", "fettleibigkeit", "übergewicht"],
+        "fa": ["چاقی", "چاق", "وضعیت چاقی"],
+        "ar": ["السمنة", "بدانة", "سمنة مفرطة"],
+        "zh": ["肥胖", "肥胖症", "肥胖状态"]
+      }
+    },
+
+    "coronary_artery_disease": {
+      "category": "cardiovascular_history",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "coronary artery disease",
+          "coronary heart disease",
+          "cad",
+          "ischemic heart disease",
+          "ihd"
+        ],
+        "fr": [
+          "maladie coronarienne",
+          "maladie de l'artère coronaire",
+          "cardiopathie ischémique"
+        ],
+        "de": [
+          "koronare herzkrankheit",
+          "koronare arterienerkrankung",
+          "kHK",
+          "ischämische herzkrankheit"
+        ],
+        "fa": [
+          "بیماری عروق کرونر",
+          "بیماری عروق قلب",
+          "بیماری کرونری قلب",
+          "بیماری ایسکمیک قلب"
+        ],
+        "ar": ["مرض الشريان التاجي", "مرض القلب التاجي", "مرض القلب الإقفاري"],
+        "zh": [
+          "冠状动脉疾病",
+          "冠心病",
+          "冠状动脉粥样硬化性心脏病",
+          "缺血性心脏病"
+        ]
+      }
+    },
+
+    "cardiovascular_disease": {
+      "category": "outcome",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "cardiovascular disease",
+          "cardiovascular disease status",
+          "cvd",
+          "heart disease",
+          "cardiac disease"
+        ],
+        "fr": [
+          "maladie cardiovasculaire",
+          "maladie cardiaque",
+          "maladie cardio-vasculaire"
+        ],
+        "de": [
+          "herz-kreislauf-erkrankung",
+          "kardiovaskuläre erkrankung",
+          "herzerkrankung"
+        ],
+        "fa": ["بیماری قلبی عروقی", "بیماری قلب و عروق", "بیماری قلبی", "CVD"],
+        "ar": [
+          "أمراض القلب والأوعية الدموية",
+          "أمراض القلب",
+          "مرض القلب والأوعية"
+        ],
+        "zh": ["心血管疾病", "心脏病", "心脑血管疾病", "心血管病"]
+      }
+    },
+
+    "myocardial_infarction": {
+      "category": "cardiovascular_history",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "myocardial infarction",
+          "heart attack",
+          "mi",
+          "acute myocardial infarction",
+          "ami",
+          "history of mi"
+        ],
+        "fr": ["infarctus du myocarde", "crise cardiaque", "infarctus", "idm"],
+        "de": ["myokardinfarkt", "herzinfarkt", "infarkt", "ami"],
+        "fa": [
+          "سکته قلبی",
+          "انفارکتوس میوکارد",
+          "حمله قلبی",
+          "سابقه سکته قلبی"
+        ],
+        "ar": [
+          "احتشاء عضلة القلب",
+          "النوبة القلبية",
+          "جلطة قلبية",
+          "احتشاء القلب"
+        ],
+        "zh": ["心肌梗死", "心脏病发作", "心肌梗塞", "急性心肌梗死"]
+      }
+    },
+
+    "stroke": {
+      "category": "medical_history",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "stroke",
+          "cerebrovascular accident",
+          "cva",
+          "history of stroke"
+        ],
+        "fr": [
+          "accident vasculaire cérébral",
+          "avc",
+          "accident cérébrovasculaire"
+        ],
+        "de": ["schlaganfall", "zerebrovaskulärer insult", "cva"],
+        "fa": ["سکته مغزی", "حادثه عروقی مغز", "سابقه سکته مغزی"],
+        "ar": ["السكتة الدماغية", "الحادث الوعائي الدماغي"],
+        "zh": ["中风", "脑卒中", "脑血管意外", "卒中"]
+      }
+    },
+
+    "heart_failure": {
+      "category": "cardiovascular_history",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "heart failure",
+          "congestive heart failure",
+          "chf",
+          "cardiac failure"
+        ],
+        "fr": ["insuffisance cardiaque", "insuffisance cardiaque congestive"],
+        "de": ["herzinsuffizienz", "kongestive herzinsuffizienz"],
+        "fa": ["نارسایی قلبی", "نارسایی احتقانی قلب", "نارسایی قلب"],
+        "ar": ["فشل القلب", "قصور القلب", "فشل القلب الاحتقاني"],
+        "zh": ["心力衰竭", "心脏衰竭", "充血性心力衰竭"]
+      }
+    },
+
+    "atrial_fibrillation": {
+      "category": "arrhythmia",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["atrial fibrillation", "afib", "af", "a-fib"],
+        "fr": ["fibrillation auriculaire", "fa"],
+        "de": ["vorhofflimmern", "vhf"],
+        "fa": ["فیبریلاسیون دهلیزی", "فیبریلاسیون دهلیز"],
+        "ar": ["الرجفان الأذيني", "الرجفان الأذيني القلبي"],
+        "zh": ["心房颤动", "房颤", "心房纤颤"]
+      }
+    },
+
+    "arrhythmia": {
+      "category": "arrhythmia",
+      "data_type": "categorical",
+      "aliases": {
+        "en": [
+          "arrhythmia",
+          "cardiac arrhythmia",
+          "heart rhythm disorder",
+          "irregular heartbeat"
+        ],
+        "fr": ["arythmie", "trouble du rythme cardiaque"],
+        "de": ["arrhythmie", "herzrhythmusstörung"],
+        "fa": ["آریتمی", "اختلال ریتم قلب", "نامنظمی ضربان قلب"],
+        "ar": [
+          "اضطراب نظم القلب",
+          "عدم انتظام ضربات القلب",
+          "اضطراب نظم القلب"
+        ],
+        "zh": ["心律失常", "心律不齐", "心脏节律异常"]
+      }
+    },
+
+    "chest_pain": {
+      "category": "symptoms",
+      "data_type": "categorical",
+      "aliases": {
+        "en": ["chest pain", "chest discomfort", "chest pain type", "cp"],
+        "fr": [
+          "douleur thoracique",
+          "douleur à la poitrine",
+          "type de douleur thoracique"
+        ],
+        "de": ["brustschmerzen", "thoraxschmerz", "brustschmerz"],
+        "fa": ["درد قفسه سینه", "درد سینه", "نوع درد قفسه سینه"],
+        "ar": ["ألم الصدر", "ألم في الصدر", "نوع ألم الصدر"],
+        "zh": ["胸痛", "胸部疼痛", "胸痛类型"]
+      }
+    },
+
+    "dyspnea": {
+      "category": "symptoms",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["dyspnea", "shortness of breath", "breathlessness", "sob"],
+        "fr": ["dyspnée", "essoufflement", "difficulté à respirer"],
+        "de": ["dyspnoe", "atemnot", "kurzatmigkeit", "atemnot"],
+        "fa": ["تنگی نفس", "دشواری تنفس", "نفس تنگی"],
+        "ar": ["ضيق التنفس", "صعوبة التنفس", "عسر التنفس"],
+        "zh": ["呼吸困难", "气短", "呼吸急促"]
+      }
+    },
+
+    "palpitations": {
+      "category": "symptoms",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["palpitations", "heart palpitations", "racing heart"],
+        "fr": ["palpitations", "palpitations cardiaques"],
+        "de": ["herzklopfen", "herzrasen", "palpitationen"],
+        "fa": ["تپش قلب", "تپش قلب شدید"],
+        "ar": ["خفقان", "خفقان القلب", "تسارع ضربات القلب"],
+        "zh": ["心悸", "心慌", "心脏悸动"]
+      }
+    },
+
+    "fatigue": {
+      "category": "symptoms",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["fatigue", "tiredness", "weakness", "fatigue symptom"],
+        "fr": ["fatigue", "fatigabilité", "asthénie"],
+        "de": ["müdigkeit", "erschöpfung", "schwäche"],
+        "fa": ["خستگی", "ضعف", "بی حالی"],
+        "ar": ["التعب", "الإرهاق", "الضعف"],
+        "zh": ["疲劳", "乏力", "疲倦"]
+      }
+    },
+
+    "ecg": {
+      "category": "cardiac_tests",
+      "data_type": "categorical_or_text",
+      "aliases": {
+        "en": ["ecg", "ekg", "electrocardiogram", "electrocardiography"],
+        "fr": ["ecg", "électrocardiogramme", "électrocardiographie"],
+        "de": ["ekg", "elektrokardiogramm", "elektrokardiographie"],
+        "fa": ["نوار قلب", "الکتروکاردیوگرام", "الکتروکاردیوگرافی", "ECG"],
+        "ar": ["تخطيط القلب", "تخطيط كهربية القلب", "ECG"],
+        "zh": ["心电图", "心电描记", "心电图检查", "ECG"]
+      }
+    },
+
+    "ecg_resting": {
+      "category": "cardiac_tests",
+      "data_type": "categorical",
+      "aliases": {
+        "en": [
+          "resting ecg",
+          "rest ecg",
+          "resting electrocardiogram",
+          "resting ekg"
+        ],
+        "fr": ["ecg au repos", "électrocardiogramme au repos"],
+        "de": ["ruhe-ekg", "ruheelektrokardiogramm"],
+        "fa": ["نوار قلب در حالت استراحت", "ECG استراحت"],
+        "ar": ["تخطيط القلب أثناء الراحة", "تخطيط القلب في الراحة"],
+        "zh": ["静息心电图", "静息ECG", "静息心电描记"]
+      }
+    },
+
+    "st_depression": {
+      "category": "ecg_measurements",
+      "data_type": "numeric",
+      "aliases": {
+        "en": ["st depression", "st segment depression", "st depression value"],
+        "fr": ["dépression du segment st", "sous-décalage st"],
+        "de": ["st-senkung", "st-streckensenkung"],
+        "fa": ["افت ST", "افت قطعه ST", "کاهش قطعه ST"],
+        "ar": ["انخفاض مقطع ST", "هبوط ST"],
+        "zh": ["ST段压低", "ST段下降", "ST压低"]
+      }
+    },
+
+    "st_slope": {
+      "category": "ecg_measurements",
+      "data_type": "categorical",
+      "aliases": {
+        "en": ["st slope", "st segment slope", "st slope during exercise"],
+        "fr": ["pente st", "pente du segment st"],
+        "de": ["st-steigung", "st-segment-steigung"],
+        "fa": ["شیب ST", "شیب قطعه ST"],
+        "ar": ["ميل ST", "ميل مقطع ST"],
+        "zh": ["ST段斜率", "ST段坡度"]
+      }
+    },
+
+    "max_heart_rate": {
+      "category": "cardiac_tests",
+      "data_type": "numeric",
+      "unit": "bpm",
+      "aliases": {
+        "en": [
+          "maximum heart rate",
+          "max heart rate",
+          "peak heart rate",
+          "thalach"
+        ],
+        "fr": [
+          "fréquence cardiaque maximale",
+          "fréquence cardiaque maximale atteinte"
+        ],
+        "de": ["maximale herzfrequenz", "maximale herzfrequenz erreicht"],
+        "fa": ["حداکثر ضربان قلب", "بیشینه ضربان قلب", "حداکثر نرخ ضربان قلب"],
+        "ar": ["الحد الأقصى لمعدل ضربات القلب", "أقصى نبض"],
+        "zh": ["最大心率", "最高心率", "峰值心率"]
+      }
+    },
+
+    "exercise_induced_angina": {
+      "category": "symptoms",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "exercise induced angina",
+          "exercise-induced angina",
+          "exercise angina",
+          "exang"
+        ],
+        "fr": ["angine induite par l'exercice", "angor d'effort"],
+        "de": ["belastungsangina", "belastungsinduzierte angina"],
+        "fa": ["آنژین ناشی از ورزش", "آنژین حین فعالیت", "آنژین فعالیتی"],
+        "ar": ["الذبحة الصدرية الناتجة عن الجهد", "ذبحة الجهد"],
+        "zh": ["运动诱发心绞痛", "劳力性心绞痛", "运动性心绞痛"]
+      }
+    },
+
+    "ejection_fraction": {
+      "category": "echocardiography",
+      "data_type": "numeric",
+      "unit": "percent",
+      "expected_range": [5, 100],
+      "aliases": {
+        "en": [
+          "ejection fraction",
+          "left ventricular ejection fraction",
+          "lvef",
+          "ef"
+        ],
+        "fr": [
+          "fraction d'éjection",
+          "fraction d'éjection ventriculaire gauche",
+          "fevg"
+        ],
+        "de": ["auswurffraktion", "linksventrikuläre auswurffraktion", "lvef"],
+        "fa": ["کسر جهشی", "کسر جهشی بطن چپ", "EF", "LVEF"],
+        "ar": ["الكسر القذفي", "الكسر القذفي للبطين الأيسر", "EF"],
+        "zh": ["射血分数", "左心室射血分数", "LVEF"]
+      }
+    },
+
+    "left_ventricular_mass": {
+      "category": "echocardiography",
+      "data_type": "numeric",
+      "aliases": {
+        "en": ["left ventricular mass", "lv mass", "left ventricle mass"],
+        "fr": ["masse ventriculaire gauche", "masse du ventricule gauche"],
+        "de": ["linksventrikuläre masse", "lv-masse"],
+        "fa": ["جرم بطن چپ", "توده بطن چپ"],
+        "ar": ["كتلة البطين الأيسر", "كتلة البطين"],
+        "zh": ["左心室质量", "左心室心肌质量"]
+      }
+    },
+
+    "left_atrial_size": {
+      "category": "echocardiography",
+      "data_type": "numeric",
+      "aliases": {
+        "en": [
+          "left atrial size",
+          "left atrium size",
+          "left atrial diameter",
+          "la size"
+        ],
+        "fr": [
+          "taille de l'oreillette gauche",
+          "diamètre de l'oreillette gauche"
+        ],
+        "de": ["größe des linken vorhofs", "linker vorhof durchmesser"],
+        "fa": ["اندازه دهلیز چپ", "قطر دهلیز چپ"],
+        "ar": ["حجم الأذين الأيسر", "حجم الأذينة اليسرى", "قطر الأذين الأيسر"],
+        "zh": ["左心房大小", "左心房直径", "左心房尺寸"]
+      }
+    },
+
+    "medication": {
+      "category": "medication",
+      "data_type": "categorical_or_text",
+      "aliases": {
+        "en": [
+          "medication",
+          "medications",
+          "drug",
+          "drugs",
+          "current medication",
+          "medication history"
+        ],
+        "fr": ["médicament", "médicaments", "traitement", "traitements"],
+        "de": ["medikament", "medikamente", "medikation", "medikamentenliste"],
+        "fa": ["دارو", "داروها", "داروهای مصرفی", "سابقه دارویی"],
+        "ar": ["دواء", "أدوية", "العلاج الدوائي", "الأدوية الحالية"],
+        "zh": ["药物", "药品", "用药", "药物治疗", "当前用药"]
+      }
+    },
+
+    "aspirin_use": {
+      "category": "medication",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["aspirin", "aspirin use", "aspirin therapy"],
+        "fr": ["aspirine", "utilisation d'aspirine", "traitement par aspirine"],
+        "de": ["aspirin", "aspirineinnahme", "aspirintherapie"],
+        "fa": ["آسپرین", "مصرف آسپرین", "درمان با آسپرین"],
+        "ar": ["الأسبرين", "استخدام الأسبرين", "العلاج بالأسبرين"],
+        "zh": ["阿司匹林", "阿司匹林使用", "阿司匹林治疗"]
+      }
+    },
+
+    "statin_use": {
+      "category": "medication",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["statin", "statin use", "statin therapy", "statin medication"],
+        "fr": ["statine", "traitement par statine", "utilisation de statines"],
+        "de": ["statin", "statintherapie", "statineinnahme"],
+        "fa": ["استاتین", "مصرف استاتین", "درمان با استاتین"],
+        "ar": ["الستاتين", "استخدام الستاتين", "العلاج بالستاتين"],
+        "zh": ["他汀", "他汀类药物", "他汀治疗", "使用他汀"]
+      }
+    },
+
+    "beta_blocker_use": {
+      "category": "medication",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["beta blocker", "beta blocker use", "beta blocker therapy"],
+        "fr": ["bêtabloquant", "traitement bêtabloquant"],
+        "de": ["betablocker", "betablockertherapie"],
+        "fa": ["بتابلاکر", "بتابلوکر", "مصرف بتابلاکر"],
+        "ar": ["حاصرات بيتا", "حاصرات مستقبلات بيتا"],
+        "zh": ["β受体阻滞剂", "β阻滞剂", "β受体阻滞剂使用"]
+      }
+    },
+
+    "ace_inhibitor_use": {
+      "category": "medication",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "ace inhibitor",
+          "ace inhibitor use",
+          "ace inhibitor therapy",
+          "acei"
+        ],
+        "fr": [
+          "inhibiteur de l'enzyme de conversion",
+          "iec",
+          "inhibiteur de l'eca"
+        ],
+        "de": ["ace-hemmer", "ace inhibitor", "ace-hemmer therapie"],
+        "fa": [
+          "مهارکننده ACE",
+          "مصرف ACEI",
+          "داروی مهارکننده آنزیم مبدل آنژیوتانسین"
+        ],
+        "ar": ["مثبطات الإنزيم المحول للأنجيوتنسين", "ACEI"],
+        "zh": ["ACE抑制剂", "血管紧张素转换酶抑制剂", "ACEI"]
+      }
+    },
+
+    "anticoagulant_use": {
+      "category": "medication",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["anticoagulant", "anticoagulant use", "anticoagulation"],
+        "fr": ["anticoagulant", "anticoagulation", "traitement anticoagulant"],
+        "de": ["antikoagulans", "antikoagulation", "antikoagulanzientherapie"],
+        "fa": ["ضدانعقاد", "داروی ضد انعقاد", "مصرف ضدانعقاد"],
+        "ar": ["مضاد التخثر", "العلاج بمضادات التخثر"],
+        "zh": ["抗凝药", "抗凝治疗", "抗凝剂使用"]
+      }
+    },
+
+    "angiography": {
+      "category": "cardiac_tests",
+      "data_type": "categorical_or_text",
+      "aliases": {
+        "en": [
+          "angiography",
+          "coronary angiography",
+          "cardiac angiography",
+          "coronary angiogram"
+        ],
+        "fr": ["angiographie", "coronarographie", "angiographie coronaire"],
+        "de": ["angiographie", "koronarangiographie", "herzkatheter"],
+        "fa": ["آنژیوگرافی", "آنژیوگرافی عروق کرونر", "تصویربرداری عروق کرونر"],
+        "ar": [
+          "تصوير الأوعية",
+          "تصوير الشرايين التاجية",
+          "تصوير الأوعية التاجية"
+        ],
+        "zh": ["血管造影", "冠状动脉造影", "冠脉造影"]
+      }
+    },
+
+    "stent": {
+      "category": "intervention",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "stent",
+          "coronary stent",
+          "stent placement",
+          "stent implantation"
+        ],
+        "fr": ["stent", "endoprothèse", "stent coronaire", "pose de stent"],
+        "de": ["stent", "koronarstent", "stentimplantation"],
+        "fa": ["استنت", "استنت قلبی", "گذاشتن استنت", "کارگذاری استنت"],
+        "ar": ["دعامة", "دعامة تاجية", "تركيب دعامة"],
+        "zh": ["支架", "冠状动脉支架", "支架植入"]
+      }
+    },
+
+    "cabg": {
+      "category": "intervention",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "cabg",
+          "coronary artery bypass graft",
+          "coronary bypass",
+          "bypass surgery"
+        ],
+        "fr": [
+          "pontage coronarien",
+          "pontage aorto-coronarien",
+          "chirurgie de pontage"
+        ],
+        "de": ["koronarer bypass", "bypass-operation", "aortokoronarer bypass"],
+        "fa": ["جراحی بای‌پس عروق کرونر", "بای‌پس قلب", "CABG"],
+        "ar": [
+          "جراحة مجازة الشريان التاجي",
+          "جراحة تحويل مسار الشريان التاجي",
+          "CABG"
+        ],
+        "zh": ["冠状动脉旁路移植术", "冠脉搭桥", "冠状动脉搭桥手术", "CABG"]
+      }
+    },
+
+    "number_of_vessels": {
+      "category": "cardiac_tests",
+      "data_type": "numeric_or_categorical",
+      "aliases": {
+        "en": [
+          "number of vessels",
+          "number of coronary vessels",
+          "vessels",
+          "ca"
+        ],
+        "fr": ["nombre de vaisseaux", "nombre de vaisseaux coronaires"],
+        "de": ["anzahl der gefäße", "anzahl koronarer gefäße"],
+        "fa": ["تعداد عروق", "تعداد رگ‌های کرونر", "تعداد عروق کرونر"],
+        "ar": ["عدد الأوعية", "عدد الشرايين التاجية"],
+        "zh": ["血管数量", "冠状动脉数量", "冠脉血管数"]
+      }
+    },
+
+    "thalassemia": {
+      "category": "hematology",
+      "data_type": "categorical",
+      "aliases": {
+        "en": ["thalassemia", "thal", "thalassemia type"],
+        "fr": ["thalassémie", "type de thalassémie"],
+        "de": ["thalassämie", "thalassämietyp"],
+        "fa": ["تالاسمی", "نوع تالاسمی"],
+        "ar": ["الثلاسيميا", "نوع الثلاسيميا"],
+        "zh": ["地中海贫血", "珠蛋白生成障碍性贫血", "地贫"]
+      }
+    },
+
+    "family_history_cvd": {
+      "category": "family_history",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "family history of cardiovascular disease",
+          "family history of heart disease",
+          "family history cvd",
+          "family cardiac history"
+        ],
+        "fr": [
+          "antécédents familiaux cardiovasculaires",
+          "antécédents familiaux de maladie cardiaque"
+        ],
+        "de": [
+          "familiäre herzkrankheiten",
+          "familienanamnese herzkrankheit",
+          "familiäre kardiovaskuläre erkrankung"
+        ],
+        "fa": [
+          "سابقه خانوادگی بیماری قلبی",
+          "سابقه خانوادگی بیماری قلب و عروق"
+        ],
+        "ar": [
+          "التاريخ العائلي لأمراض القلب",
+          "التاريخ العائلي لأمراض القلب والأوعية"
+        ],
+        "zh": ["心血管疾病家族史", "心脏病家族史", "家族心脏病史"]
+      }
+    },
+
+    "family_history_hypertension": {
+      "category": "family_history",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["family history of hypertension", "family hypertension history"],
+        "fr": ["antécédents familiaux d'hypertension"],
+        "de": ["familiäre hypertonie", "familienanamnese hypertonie"],
+        "fa": ["سابقه خانوادگی فشار خون بالا"],
+        "ar": ["التاريخ العائلي لارتفاع ضغط الدم"],
+        "zh": ["高血压家族史"]
+      }
+    },
+
+    "date": {
+      "category": "temporal",
+      "data_type": "datetime",
+      "aliases": {
+        "en": [
+          "date",
+          "date of visit",
+          "visit date",
+          "admission date",
+          "assessment date"
+        ],
+        "fr": [
+          "date",
+          "date de visite",
+          "date d'admission",
+          "date de consultation"
+        ],
+        "de": ["datum", "besuchsdatum", "aufnahmedatum", "untersuchungsdatum"],
+        "fa": ["تاریخ", "تاریخ مراجعه", "تاریخ ویزیت", "تاریخ پذیرش"],
+        "ar": ["التاريخ", "تاريخ الزيارة", "تاريخ الدخول", "تاريخ الفحص"],
+        "zh": ["日期", "就诊日期", "入院日期", "检查日期"]
+      }
+    },
+
+    "admission_date": {
+      "category": "temporal",
+      "data_type": "datetime",
+      "aliases": {
+        "en": [
+          "admission date",
+          "hospital admission date",
+          "date of admission"
+        ],
+        "fr": ["date d'admission", "date d'hospitalisation"],
+        "de": [
+          "aufnahmedatum",
+          "datum der aufnahme",
+          "krankenhausaufnahmedatum"
+        ],
+        "fa": ["تاریخ پذیرش", "تاریخ بستری", "تاریخ ورود به بیمارستان"],
+        "ar": ["تاريخ الدخول", "تاريخ دخول المستشفى", "تاريخ القبول"],
+        "zh": ["入院日期", "住院日期", "入院时间"]
+      }
+    },
+
+    "discharge_date": {
+      "category": "temporal",
+      "data_type": "datetime",
+      "aliases": {
+        "en": [
+          "discharge date",
+          "hospital discharge date",
+          "date of discharge"
+        ],
+        "fr": ["date de sortie", "date de sortie de l'hôpital"],
+        "de": ["entlassungsdatum", "datum der entlassung"],
+        "fa": ["تاریخ ترخیص", "تاریخ خروج از بیمارستان"],
+        "ar": ["تاريخ الخروج", "تاريخ الخروج من المستشفى"],
+        "zh": ["出院日期", "出院时间"]
+      }
+    },
+
+    "hospitalization": {
+      "category": "administrative",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "hospitalization",
+          "hospital admission",
+          "hospitalized",
+          "inpatient"
+        ],
+        "fr": ["hospitalisation", "admission hospitalière", "hospitalisé"],
+        "de": [
+          "krankenhausaufenthalt",
+          "stationäre behandlung",
+          "hospitalisiert"
+        ],
+        "fa": ["بستری", "بستری شدن", "بستری در بیمارستان"],
+        "ar": ["دخول المستشفى", "الاستشفاء", "منوم في المستشفى"],
+        "zh": ["住院", "住院治疗", "住院患者"]
+      }
+    },
+
+    "length_of_stay": {
+      "category": "administrative",
+      "data_type": "numeric",
+      "unit": "days",
+      "aliases": {
+        "en": [
+          "length of stay",
+          "hospital stay",
+          "days hospitalized",
+          "hospital days"
+        ],
+        "fr": [
+          "durée de séjour",
+          "durée d'hospitalisation",
+          "jours d'hospitalisation"
+        ],
+        "de": [
+          "aufenthaltsdauer",
+          "krankenhausaufenthalt in tagen",
+          "verweildauer"
+        ],
+        "fa": ["مدت بستری", "طول مدت بستری", "روزهای بستری"],
+        "ar": ["مدة الإقامة", "مدة الاستشفاء", "أيام الإقامة في المستشفى"],
+        "zh": ["住院天数", "住院时长", "住院时间"]
+      }
+    },
+
+    "mortality": {
+      "category": "outcome",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "mortality",
+          "death",
+          "death status",
+          "deceased",
+          "mortality status"
+        ],
+        "fr": ["mortalité", "décès", "statut de décès", "décédé"],
+        "de": ["mortalität", "tod", "todesstatus", "verstorben"],
+        "fa": ["مرگ", "مرگ و میر", "وضعیت مرگ", "فوت"],
+        "ar": ["الوفاة", "معدل الوفيات", "حالة الوفاة", "متوفى"],
+        "zh": ["死亡", "死亡率", "死亡状态", "患者死亡"]
+      }
+    },
+
+    "survival_time": {
+      "category": "outcome",
+      "data_type": "numeric",
+      "aliases": {
+        "en": [
+          "survival time",
+          "survival duration",
+          "time to death",
+          "follow-up time"
+        ],
+        "fr": [
+          "temps de survie",
+          "durée de survie",
+          "temps jusqu'au décès",
+          "durée de suivi"
+        ],
+        "de": [
+          "überlebenszeit",
+          "überlebensdauer",
+          "zeit bis zum tod",
+          "nachbeobachtungszeit"
+        ],
+        "fa": ["زمان بقا", "مدت بقا", "زمان تا مرگ", "مدت پیگیری"],
+        "ar": ["مدة البقاء", "زمن البقاء", "الوقت حتى الوفاة", "مدة المتابعة"],
+        "zh": ["生存时间", "生存期", "死亡时间", "随访时间"]
+      }
+    },
+
+    "cvd_outcome": {
+      "category": "outcome",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "cvd outcome",
+          "cardiovascular outcome",
+          "cardiovascular event",
+          "cv event",
+          "major cardiovascular event"
+        ],
+        "fr": [
+          "événement cardiovasculaire",
+          "résultat cardiovasculaire",
+          "événement cardiaque majeur"
+        ],
+        "de": [
+          "kardiovaskuläres ereignis",
+          "kardiovaskuläres outcome",
+          "herz-kreislauf-ereignis"
+        ],
+        "fa": ["پیامد قلبی عروقی", "رویداد قلبی عروقی", "پیامد بیماری قلبی"],
+        "ar": [
+          "النتيجة القلبية الوعائية",
+          "حدث قلبي وعائي",
+          "النتائج القلبية الوعائية"
+        ],
+        "zh": ["心血管结局", "心血管事件", "心血管疾病结局", "主要心血管事件"]
+      }
+    },
+
+    "coronary_event": {
+      "category": "outcome",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "coronary event",
+          "coronary heart event",
+          "coronary event outcome"
+        ],
+        "fr": ["événement coronaire", "événement coronarien"],
+        "de": ["koronares ereignis", "koronarereignis"],
+        "fa": ["رویداد کرونری", "حادثه عروق کرونر"],
+        "ar": ["حدث تاجي", "حدث الشريان التاجي"],
+        "zh": ["冠脉事件", "冠状动脉事件"]
+      }
+    },
+
+    "diabetes_complication": {
+      "category": "complications",
+      "data_type": "categorical",
+      "aliases": {
+        "en": [
+          "diabetes complication",
+          "diabetic complication",
+          "diabetes complications"
+        ],
+        "fr": ["complication du diabète", "complications diabétiques"],
+        "de": ["diabeteskomplikation", "diabetische komplikation"],
+        "fa": ["عارضه دیابت", "عوارض دیابت", "عوارض دیابتی"],
+        "ar": ["مضاعفات السكري", "مضاعفات داء السكري"],
+        "zh": ["糖尿病并发症", "糖尿病并发症情况"]
+      }
+    },
+
+    "renal_disease": {
+      "category": "comorbidity",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": [
+          "renal disease",
+          "kidney disease",
+          "chronic kidney disease",
+          "ckd",
+          "renal insufficiency"
+        ],
+        "fr": [
+          "maladie rénale",
+          "maladie rénale chronique",
+          "insuffisance rénale"
+        ],
+        "de": [
+          "nierenerkrankung",
+          "chronische nierenkrankheit",
+          "niereninsuffizienz"
+        ],
+        "fa": ["بیماری کلیوی", "بیماری مزمن کلیه", "نارسایی کلیه"],
+        "ar": ["أمراض الكلى", "مرض الكلى المزمن", "قصور الكلى"],
+        "zh": ["肾脏疾病", "慢性肾病", "肾功能不全"]
+      }
+    },
+
+    "copd": {
+      "category": "comorbidity",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["copd", "chronic obstructive pulmonary disease"],
+        "fr": ["bpco", "bronchopneumopathie chronique obstructive"],
+        "de": ["copd", "chronisch obstruktive lungenerkrankung"],
+        "fa": ["COPD", "بیماری انسدادی مزمن ریه"],
+        "ar": ["مرض الانسداد الرئوي المزمن", "الانسداد الرئوي المزمن", "COPD"],
+        "zh": ["慢性阻塞性肺疾病", "慢阻肺", "COPD"]
+      }
+    },
+
+    "thyroid_disease": {
+      "category": "comorbidity",
+      "data_type": "categorical_or_boolean",
+      "aliases": {
+        "en": ["thyroid disease", "thyroid disorder", "thyroid condition"],
+        "fr": ["maladie thyroïdienne", "trouble thyroïdien"],
+        "de": ["schilddrüsenerkrankung", "schilddrüsenstörung"],
+        "fa": ["بیماری تیروئید", "اختلال تیروئید"],
+        "ar": ["مرض الغدة الدرقية", "اضطراب الغدة الدرقية"],
+        "zh": ["甲状腺疾病", "甲状腺功能异常", "甲状腺疾病史"]
+      }
+    },
+
+    "hemoglobin_value": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": ["hemoglobin value", "hemoglobin level", "hb level"],
+        "fr": ["taux d'hémoglobine", "niveau d'hémoglobine"],
+        "de": ["hämoglobinwert", "hämoglobinspiegel"],
+        "fa": ["مقدار هموگلوبین", "سطح هموگلوبین"],
+        "ar": ["مستوى الهيموغلوبين", "قيمة الهيموغلوبين"],
+        "zh": ["血红蛋白值", "血红蛋白水平"]
+      }
+    },
+
+    "platelet_count": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": ["platelet count", "platelets", "thrombocyte count"],
+        "fr": ["numération plaquettaire", "plaquettes"],
+        "de": ["thrombozytenzahl", "thrombozyten"],
+        "fa": ["تعداد پلاکت", "پلاکت خون"],
+        "ar": ["عدد الصفائح الدموية", "الصفائح الدموية"],
+        "zh": ["血小板计数", "血小板"]
+      }
+    },
+
+    "crp": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": ["crp", "c reactive protein", "c-reactive protein"],
+        "fr": ["crp", "protéine c-réactive", "protéine c réactive"],
+        "de": ["crp", "c-reaktives protein", "c reaktives protein"],
+        "fa": ["CRP", "پروتئین واکنشی C", "پروتئین C واکنشی"],
+        "ar": ["بروتين سي التفاعلي", "CRP"],
+        "zh": ["C反应蛋白", "C反应性蛋白", "CRP"]
+      }
+    },
+
+    "sodium": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": ["sodium", "serum sodium", "na"],
+        "fr": ["sodium", "sodium sérique", "na"],
+        "de": ["natrium", "serumnatrium", "na"],
+        "fa": ["سدیم", "سدیم سرم", "Na"],
+        "ar": ["الصوديوم", "صوديوم المصل", "Na"],
+        "zh": ["钠", "血清钠", "Na"]
+      }
+    },
+
+    "potassium": {
+      "category": "laboratory",
+      "data_type": "numeric",
+      "aliases": {
+        "en": ["potassium", "serum potassium", "k"],
+        "fr": ["potassium", "potassium sérique", "k"],
+        "de": ["kalium", "serumkalium", "k"],
+        "fa": ["پتاسیم", "پتاسیم سرم", "K"],
+        "ar": ["البوتاسيوم", "بوتاسيوم المصل", "K"],
+        "zh": ["钾", "血清钾", "K"]
+      }
+    },
+
+    "family_history": {
+      "category": "family_history",
+      "data_type": "categorical_or_text",
+      "aliases": {
+        "en": [
+          "family history",
+          "family medical history",
+          "family disease history"
+        ],
+        "fr": ["antécédents familiaux", "histoire médicale familiale"],
+        "de": [
+          "familienanamnese",
+          "familiengeschichte",
+          "familiäre krankheitsgeschichte"
+        ],
+        "fa": ["سابقه خانوادگی", "تاریخچه پزشکی خانوادگی"],
+        "ar": ["التاريخ العائلي", "التاريخ الطبي العائلي"],
+        "zh": ["家族史", "家族病史", "家族医学史"]
+      }
+    },
+
+    "ethnicity": {
+      "category": "demographics",
+      "data_type": "categorical",
+      "aliases": {
+        "en": ["ethnicity", "ethnic group", "ethnic background", "race"],
+        "fr": ["ethnie", "origine ethnique", "groupe ethnique"],
+        "de": ["ethnizität", "ethnische zugehörigkeit", "ethnische gruppe"],
+        "fa": ["قومیت", "گروه قومی", "پیشینه قومی"],
+        "ar": ["العرق", "الأصل العرقي", "المجموعة العرقية"],
+        "zh": ["民族", "族群", "种族", "民族背景"]
+      }
+    },
+
+    "education": {
+      "category": "socioeconomic",
+      "data_type": "categorical",
+      "aliases": {
+        "en": ["education", "education level", "educational level"],
+        "fr": ["éducation", "niveau d'éducation", "niveau scolaire"],
+        "de": ["bildung", "bildungsniveau", "ausbildungsniveau"],
+        "fa": ["تحصیلات", "سطح تحصیلات", "میزان تحصیلات"],
+        "ar": ["التعليم", "المستوى التعليمي", "مستوى التعليم"],
+        "zh": ["教育程度", "教育水平", "学历"]
+      }
+    },
+
+    "income": {
+      "category": "socioeconomic",
+      "data_type": "numeric_or_categorical",
+      "aliases": {
+        "en": ["income", "annual income", "household income", "income level"],
+        "fr": ["revenu", "revenu annuel", "revenu du ménage"],
+        "de": ["einkommen", "jahreseinkommen", "haushaltseinkommen"],
+        "fa": ["درآمد", "درآمد سالانه", "درآمد خانوار", "سطح درآمد"],
+        "ar": ["الدخل", "الدخل السنوي", "دخل الأسرة", "مستوى الدخل"],
+        "zh": ["收入", "年收入", "家庭收入", "收入水平"]
+      }
+    },
+
+    "marital_status": {
+      "category": "demographics",
+      "data_type": "categorical",
+      "aliases": {
+        "en": ["marital status", "marriage status"],
+        "fr": ["état matrimonial", "situation matrimoniale", "statut marital"],
+        "de": ["familienstand", "ehelicher status"],
+        "fa": ["وضعیت تأهل", "وضعیت ازدواج", "تاهل"],
+        "ar": ["الحالة الاجتماعية", "الحالة الزوجية"],
+        "zh": ["婚姻状况", "婚姻状态"]
+      }
+    },
+
+    "sex_at_birth": {
+      "category": "demographics",
+      "data_type": "categorical",
+      "aliases": {
+        "en": ["sex at birth", "assigned sex at birth", "birth sex"],
+        "fr": ["sexe à la naissance", "sexe assigné à la naissance"],
+        "de": [
+          "geschlecht bei der geburt",
+          "bei geburt zugewiesenes geschlecht"
+        ],
+        "fa": ["جنس در بدو تولد", "جنس تعیین‌شده هنگام تولد"],
+        "ar": ["الجنس عند الولادة", "الجنس المحدد عند الولادة"],
+        "zh": ["出生时性别", "出生指定性别"]
+      }
+    },
+
+    "smoking_pack_years": {
+      "category": "lifestyle",
+      "data_type": "numeric",
+      "unit": "pack_years",
+      "aliases": {
+        "en": [
+          "pack years",
+          "pack-years",
+          "smoking pack years",
+          "pack year history"
+        ],
+        "fr": ["paquets-années", "années-paquets", "tabagisme cumulé"],
+        "de": ["packungsjahre", "pack-years", "raucherpackungsjahre"],
+        "fa": ["پاکت سال", "پاکت-سال سیگار", "سابقه مصرف سیگار به پاکت سال"],
+        "ar": ["سنوات علبة", "سنوات التدخين", "عبوة-سنة"],
+        "zh": ["包年", "吸烟包年", "吸烟指数"]
+      }
+    },
+
+    "waist_circumference": {
+      "category": "anthropometrics",
+      "data_type": "numeric",
+      "unit": "cm",
+      "aliases": {
+        "en": ["waist circumference", "waist size", "abdominal circumference"],
+        "fr": ["tour de taille", "circonférence abdominale"],
+        "de": ["taillenumfang", "bauchumfang"],
+        "fa": ["دور کمر", "محیط کمر", "محیط شکم"],
+        "ar": ["محيط الخصر", "محيط البطن"],
+        "zh": ["腰围", "腹围", "腰部周长"]
+      }
+    },
+
+    "hip_circumference": {
+      "category": "anthropometrics",
+      "data_type": "numeric",
+      "unit": "cm",
+      "aliases": {
+        "en": ["hip circumference", "hip size"],
+        "fr": ["tour de hanches", "circonférence des hanches"],
+        "de": ["hüftumfang"],
+        "fa": ["دور باسن", "محیط لگن"],
+        "ar": ["محيط الورك", "محيط الحوض"],
+        "zh": ["臀围", "髋围"]
+      }
+    },
+
+    "pulse_pressure": {
+      "category": "vital_signs",
+      "data_type": "numeric",
+      "unit": "mmHg",
+      "aliases": {
+        "en": ["pulse pressure", "pulse pressure difference", "pp"],
+        "fr": ["pression pulsée", "pression différentielle"],
+        "de": ["pulsdruck", "blutdruckamplitude"],
+        "fa": ["فشار نبضی", "فشار ضربانی"],
+        "ar": ["ضغط النبض", "الضغط النبضي"],
+        "zh": ["脉压", "脉搏压"]
+      }
+    },
+
+    "mean_arterial_pressure": {
+      "category": "vital_signs",
+      "data_type": "numeric",
+      "unit": "mmHg",
+      "aliases": {
+        "en": ["mean arterial pressure", "mean blood pressure", "map"],
+        "fr": ["pression artérielle moyenne", "pam"],
+        "de": ["mittlerer arterieller druck", "mittlerer blutdruck", "map"],
+        "fa": ["فشار متوسط شریانی", "فشار متوسط خون", "MAP"],
+        "ar": ["متوسط الضغط الشرياني", "ضغط الدم الشرياني المتوسط", "MAP"],
+        "zh": ["平均动脉压", "平均血压", "MAP"]
+      }
+    }
+  }
+}

@@ -23,3 +23,11 @@ jdatetime
 # Notebook runtime
 jupyterlab
 ipykernel
+
+
+
+
+tiktoken
+transformers
+torch
+sentencepiece

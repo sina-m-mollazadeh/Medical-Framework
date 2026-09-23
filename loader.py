@@ -2,6 +2,11 @@ import pandas as pd
 import jdatetime
 import re
 from sklearn.preprocessing import LabelEncoder
+from Inference.semantic import SemanticInferencer
+semantic_inferencer = SemanticInferencer(
+    ontology_path="Inference/cvd_ontology.json"
+)
+
 
 def is_pure_date_string(s):
     try:
@@ -136,7 +141,17 @@ def load_data(path, y_column):
     else:
         raise ValueError("File format not supported.")
     
-   
+    semantic_schema = semantic_inferencer.infer(data)
+    
+    print("Column Inference results")
+
+    for column_name, result in semantic_schema.colmns.items():
+        print(
+            f"{column_name!r:30} -> "
+            f"{result.concept_id!r:25} "
+            f"[{result.status}]"
+        )
+
     data = data.dropna(subset=[y_column])    
     data = sanitize_column_names(data, y_column)
     

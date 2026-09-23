@@ -1,24 +1,19 @@
 """
 semantic.py
 
-Two-stage semantic column inference for the multilingual CVD ontology.
+Deterministic semantic column inference for the multilingual CVD ontology.
 
-Stage 1: deterministic ontology inference using aliases, dtype, values,
-         expected ranges and optional ontology metadata.
-Stage 2: only unresolved columns are encoded with SapBERT-XLMR-large via
-         generate_embedding.py and compared with all_embed_ontology.json.
+Current mode: deterministic ontology inference only, using aliases, dtype,
+observed values, expected ranges, and optional ontology metadata.
 
-The system is deliberately conservative: an uncertain embedding match is
-returned as UNKNOWN rather than being forced into a medical concept.
+NLP / SapBERT inference is intentionally disabled for now. Unresolved
+columns are returned as UNKNOWN.
 
 Typical usage:
     from semantic import SemanticInferencer, SemanticDataset
 
     inferencer = SemanticInferencer(
         ontology_path="cvd_ontology.json",
-        embedding_index_path="all_embed_ontology.json",
-        embedding_threshold=0.88,
-        embedding_margin=0.05,
     )
 
     schema = inferencer.infer(df)
@@ -35,22 +30,26 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
-import numpy as np
 import pandas as pd
 
-from generate_embedding import generate_embeddings
+# ---------------------------------------------------------------------------
+# NLP / SapBERT module -- DISABLED FOR NOW
+# ---------------------------------------------------------------------------
+# from generate_embedding import generate_embeddings
+# DEFAULT_EMBEDDING_INDEX_PATH = "all_embed_ontology.json"
+# DEFAULT_EMBEDDING_THRESHOLD = 0.88
+# DEFAULT_EMBEDDING_MARGIN = 0.05
+# No Hugging Face model or embedding index is loaded in this version.
+# ---------------------------------------------------------------------------
 
 
 DEFAULT_ONTOLOGY_PATH = "cvd_ontology.json"
-DEFAULT_EMBEDDING_INDEX_PATH = "all_embed_ontology.json"
 UNKNOWN = "UNKNOWN"
 
 # Conservative defaults. Increase rather than decrease these when false
 # inferences are more costly than missed inferences.
 DEFAULT_DETERMINISTIC_THRESHOLD = 0.80
 DEFAULT_DETERMINISTIC_MARGIN = 0.10
-DEFAULT_EMBEDDING_THRESHOLD = 0.88
-DEFAULT_EMBEDDING_MARGIN = 0.05
 
 
 def load_json(path: str | Path) -> Dict[str, Any]:
@@ -305,70 +304,15 @@ class SemanticSchema:
         return pd.DataFrame(rows)
 
 
-class EmbeddingIndex:
-    """Loads all_embed_ontology.json and keeps its vectors in RAM."""
-
-    def __init__(self, data: Mapping[str, Any]):
-        self.raw = dict(data)
-        encoder = data.get("encoder", {})
-        self.model_name = encoder.get("model_name")
-        self.dimension = int(encoder.get("embedding_dimension", 0))
-        raw_entries = data.get("embeddings", [])
-        if not isinstance(raw_entries, list):
-            raise ValueError("Embedding index 'embeddings' must be a list.")
-
-        self.entries = []
-        vectors = []
-        for i, item in enumerate(raw_entries):
-            if not isinstance(item, Mapping):
-                raise ValueError(f"Embedding entry {i} must be an object.")
-            vector = np.asarray(item.get("embedding", []), dtype=np.float32)
-            if vector.ndim != 1:
-                raise ValueError(f"Embedding entry {i} is not one-dimensional.")
-            if self.dimension and len(vector) != self.dimension:
-                raise ValueError(
-                    f"Embedding entry {i} has dimension {len(vector)}, "
-                    f"expected {self.dimension}."
-                )
-            self.entries.append({
-                "text": str(item.get("text", "")),
-                "concepts": [str(x) for x in item.get("concepts", [])],
-                "languages": [str(x) for x in item.get("languages", [])],
-                "embedding": vector,
-            })
-            vectors.append(vector)
-
-        self.matrix = np.vstack(vectors).astype(np.float32) if vectors else np.empty((0, self.dimension), dtype=np.float32)
-        if len(self.matrix):
-            norms = np.linalg.norm(self.matrix, axis=1, keepdims=True)
-            norms[norms == 0] = 1.0
-            self.matrix /= norms
-
-    @classmethod
-    def from_json(cls, path: str | Path) -> "EmbeddingIndex":
-        return cls(load_json(path))
-
-    def search(self, query: np.ndarray, top_k: int = 10) -> List[Tuple[int, float]]:
-        if not len(self.matrix):
-            return []
-        q = np.asarray(query, dtype=np.float32).reshape(-1)
-        if len(q) != self.matrix.shape[1]:
-            raise ValueError(
-                f"Query embedding dimension {len(q)} does not match "
-                f"ontology dimension {self.matrix.shape[1]}."
-            )
-        norm = np.linalg.norm(q)
-        if norm == 0:
-            return []
-        q /= norm
-        sims = self.matrix @ q
-        k = min(max(1, int(top_k)), len(sims))
-        if k < len(sims):
-            ids = np.argpartition(-sims, k - 1)[:k]
-            ids = ids[np.argsort(-sims[ids])]
-        else:
-            ids = np.argsort(-sims)
-        return [(int(i), float(sims[i])) for i in ids]
+# ---------------------------------------------------------------------------
+# NLP / SapBERT embedding index -- DISABLED FOR NOW
+# ---------------------------------------------------------------------------
+# class EmbeddingIndex:
+#     ...
+#
+# The embedding index is deliberately not loaded while deterministic-only
+# mode is active.
+# ---------------------------------------------------------------------------
 
 
 class DeterministicMatcher:
@@ -381,7 +325,7 @@ class DeterministicMatcher:
 
     def match(self, p: ColumnProfile) -> Optional[SemanticMatch]:
         # Exact normalized alias. If one alias maps to multiple concepts,
-        # refuse to choose and let the embedding stage try.
+        # refuse to choose. The NLP/SapBERT fallback is disabled for now.
         aliases = self.ontology.aliases.get(p.normalized_name, [])
         if not aliases:
             aliases = self.ontology.compact_aliases.get(compact_normalize(p.name), [])
@@ -500,176 +444,116 @@ class DeterministicMatcher:
         return 0.0
 
 
-class EmbeddingMatcher:
-    """Second-stage conservative matcher over the persistent ontology vectors."""
-
-    def __init__(self, ontology: Ontology, index: EmbeddingIndex,
-                 threshold: float, margin: float, top_k: int = 10):
-        self.ontology, self.index = ontology, index
-        self.threshold, self.margin, self.top_k = threshold, margin, max(2, top_k)
-
-    def match(self, column: str, embedding: np.ndarray) -> SemanticMatch:
-        hits = self.index.search(embedding, self.top_k)
-        if not hits:
-            return self._unknown(column, "No ontology embedding candidates.")
-
-        # Aggregate by concept using the best alias score. This avoids giving
-        # concepts with many aliases an artificial advantage.
-        best_by_concept: Dict[str, Tuple[float, Dict[str, Any]]] = {}
-        for idx, score in hits:
-            entry = self.index.entries[idx]
-            for cid in entry["concepts"]:
-                old = best_by_concept.get(cid)
-                if old is None or score > old[0]:
-                    best_by_concept[cid] = (score, entry)
-
-        ranked = sorted(best_by_concept.items(), key=lambda x: x[1][0], reverse=True)
-        if not ranked:
-            return self._unknown(column, "Embedding candidates have no concepts.")
-
-        best_id, (best_score, best_entry) = ranked[0]
-        second_id = ranked[1][0] if len(ranked) > 1 else None
-        second_score = ranked[1][1][0] if len(ranked) > 1 else None
-        margin = best_score - second_score if second_score is not None else best_score
-        accepted = best_score >= self.threshold and (
-            second_score is None or margin >= self.margin
-        )
-
-        candidates = [
-            Candidate(cid, float(score), entry["text"],
-                      entry["languages"][0] if entry["languages"] else None,
-                      "embedding")
-            for cid, (score, entry) in ranked[:5]
-        ]
-
-        if not accepted or best_id not in self.ontology.concepts:
-            return SemanticMatch(
-                column, UNKNOWN, float(best_score), "embedding", "UNKNOWN",
-                best_entry["text"],
-                best_entry["languages"][0] if best_entry["languages"] else None,
-                reason=(
-                    "Embedding candidate rejected because similarity was below "
-                    "the threshold or the top concepts were too close."
-                ),
-                second_best_concept=second_id,
-                second_best_score=float(second_score) if second_score is not None else None,
-                margin=float(margin), candidates=candidates,
-            )
-
-        c = self.ontology.concepts[best_id]
-        return SemanticMatch(
-            column, best_id, float(best_score), "embedding", "KNOWN",
-            best_entry["text"],
-            best_entry["languages"][0] if best_entry["languages"] else None,
-            c.category, c.data_type, c.unit,
-            "High-confidence SapBERT-XLMR embedding match.",
-            second_id,
-            float(second_score) if second_score is not None else None,
-            float(margin), candidates,
-        )
-
-    @staticmethod
-    def _unknown(column: str, reason: str) -> SemanticMatch:
-        return SemanticMatch(column, UNKNOWN, 0.0, "embedding", "UNKNOWN", reason=reason)
-
-
 class SemanticInferencer:
     """
-    Complete inference pipeline.
+    Deterministic-only semantic inference pipeline.
 
-    The embedding model is instantiated only if there are unresolved columns.
-    Thus a dataset whose columns are all resolved deterministically never
-    invokes SapBERT at all.
+    NLP / SapBERT inference is intentionally disabled.
+
+    Any column that cannot be resolved with the deterministic ontology
+    matcher is returned as UNKNOWN. No external model is loaded, no
+    Hugging Face files are accessed, and no embedding index is required.
     """
 
-    def __init__(self,
-                 ontology: Optional[Ontology] = None,
-                 ontology_path: str | Path = DEFAULT_ONTOLOGY_PATH,
-                 embedding_index: Optional[EmbeddingIndex] = None,
-                 embedding_index_path: str | Path = DEFAULT_EMBEDDING_INDEX_PATH,
-                 deterministic_threshold: float = DEFAULT_DETERMINISTIC_THRESHOLD,
-                 deterministic_margin: float = DEFAULT_DETERMINISTIC_MARGIN,
-                 embedding_threshold: float = DEFAULT_EMBEDDING_THRESHOLD,
-                 embedding_margin: float = DEFAULT_EMBEDDING_MARGIN,
-                 embedding_top_k: int = 10,
-                 profile_sample_size: int = 20,
-                 embedding_device: Optional[str] = None,
-                 embedding_batch_size: int = 128):
+    def __init__(
+        self,
+        ontology: Optional[Ontology] = None,
+        ontology_path: str | Path = DEFAULT_ONTOLOGY_PATH,
+        deterministic_threshold: float = DEFAULT_DETERMINISTIC_THRESHOLD,
+        deterministic_margin: float = DEFAULT_DETERMINISTIC_MARGIN,
+        profile_sample_size: int = 20,
+        # -----------------------------------------------------------------
+        # NLP / SapBERT parameters are intentionally disabled for now.
+        # They are kept only as comments to document the future extension:
+        # embedding_index_path, embedding_threshold, embedding_margin,
+        # embedding_top_k, embedding_device, embedding_batch_size.
+        # -----------------------------------------------------------------
+    ):
         self.ontology = ontology or Ontology.from_json(ontology_path)
-        self.embedding_index = embedding_index or EmbeddingIndex.from_json(embedding_index_path)
         self.deterministic = DeterministicMatcher(
-            self.ontology, deterministic_threshold, deterministic_margin
-        )
-        self.embedding = EmbeddingMatcher(
-            self.ontology, self.embedding_index,
-            embedding_threshold, embedding_margin, embedding_top_k
+            self.ontology,
+            deterministic_threshold,
+            deterministic_margin,
         )
         self.profile_sample_size = profile_sample_size
-        self.embedding_device = embedding_device
-        self.embedding_batch_size = embedding_batch_size
+
+    def _unknown_match(self, column: str) -> SemanticMatch:
+        """Return an UNKNOWN result when deterministic matching is inconclusive."""
+        return SemanticMatch(
+            column=column,
+            concept_id=UNKNOWN,
+            confidence=0.0,
+            method="deterministic",
+            status="UNKNOWN",
+            reason=(
+                "No sufficiently confident deterministic ontology match. "
+                "NLP/SapBERT inference is currently disabled."
+            ),
+        )
 
     def infer(self, data: pd.DataFrame) -> SemanticSchema:
         profiles = profile_dataset(data, self.profile_sample_size)
         matches: Dict[str, SemanticMatch] = {}
-        unresolved: List[ColumnProfile] = []
 
-        # Stage 1: deterministic inference.
+        # -----------------------------------------------------------------
+        # Stage 1: deterministic ontology inference.
+        # -----------------------------------------------------------------
         for p in profiles:
             match = self.deterministic.match(p)
+
             if match is None:
-                unresolved.append(p)
+                # ---------------------------------------------------------
+                # Stage 2: NLP / SapBERT fallback -- DISABLED FOR NOW.
+                # Previously, unresolved columns were encoded with
+                # generate_embeddings() and compared with
+                # all_embed_ontology.json. For now they remain UNKNOWN.
+                # ---------------------------------------------------------
+                matches[p.name] = self._unknown_match(p.name)
             else:
                 matches[p.name] = match
 
-        # Stage 2: ONLY unresolved columns go to the encoder.
-        if unresolved:
-            names = [p.name for p in unresolved]
-            query_vectors = generate_embeddings(
-                names,
-                batch_size=self.embedding_batch_size,
-                normalize=True,
-                show_progress=True,
-                device=self.embedding_device,
-            )
-            if len(query_vectors) != len(unresolved):
-                raise RuntimeError("Embedding count does not match unresolved columns.")
-            for p, vector in zip(unresolved, query_vectors):
-                matches[p.name] = self.embedding.match(p.name, vector)
-
         return SemanticSchema(
             matches=matches,
             ontology_name=self.ontology.name,
             ontology_version=self.ontology.version,
-            embedding_model=self.embedding_index.model_name,
+            # NLP / SapBERT disabled.
+            embedding_model=None,
         )
 
-    def infer_columns(self, column_names: Sequence[str]) -> SemanticSchema:
-        """Infer from names only, useful for testing without a dataframe."""
+    def infer_columns(
+        self,
+        column_names: Sequence[str],
+    ) -> SemanticSchema:
+        """Infer from column names only using deterministic matching."""
         matches: Dict[str, SemanticMatch] = {}
-        unresolved = []
+
         for name in column_names:
+            name = str(name)
             p = ColumnProfile(
-                name=str(name), normalized_name=normalize_text(name), dtype="unknown",
-                numeric=False, boolean=False, datetime=False,
-                non_null=0, unique=0, missing=0,
+                name=name,
+                normalized_name=normalize_text(name),
+                dtype="unknown",
+                numeric=False,
+                boolean=False,
+                datetime=False,
+                non_null=0,
+                unique=0,
+                missing=0,
             )
-            m = self.deterministic.match(p)
-            if m is None:
-                unresolved.append(str(name))
+
+            match = self.deterministic.match(p)
+
+            if match is None:
+                # NLP / SapBERT fallback intentionally disabled.
+                matches[name] = self._unknown_match(name)
             else:
-                matches[str(name)] = m
-        if unresolved:
-            vectors = generate_embeddings(
-                unresolved, batch_size=self.embedding_batch_size,
-                normalize=True, show_progress=True, device=self.embedding_device,
-            )
-            for name, vector in zip(unresolved, vectors):
-                matches[name] = self.embedding.match(name, vector)
+                matches[name] = match
+
         return SemanticSchema(
             matches=matches,
             ontology_name=self.ontology.name,
             ontology_version=self.ontology.version,
-            embedding_model=self.embedding_index.model_name,
+            embedding_model=None,
         )
 
 
@@ -702,26 +586,49 @@ def load_ontology(path: str | Path = DEFAULT_ONTOLOGY_PATH) -> Ontology:
     return Ontology.from_json(path)
 
 
-def load_embedding_index(path: str | Path = DEFAULT_EMBEDDING_INDEX_PATH) -> EmbeddingIndex:
-    return EmbeddingIndex.from_json(path)
+# ---------------------------------------------------------------------------
+# NLP / SapBERT helper -- DISABLED FOR NOW
+# ---------------------------------------------------------------------------
+# def load_embedding_index(...):
+#     ...
+# ---------------------------------------------------------------------------
+
 
 
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Infer CVD dataset column semantics.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Infer CVD dataset column semantics using deterministic "
+            "ontology matching only."
+        )
+    )
     parser.add_argument("dataset", help="CSV or XLSX dataset")
     parser.add_argument("--ontology", default=DEFAULT_ONTOLOGY_PATH)
-    parser.add_argument("--embeddings", default=DEFAULT_EMBEDDING_INDEX_PATH)
-    parser.add_argument("--embedding-threshold", type=float, default=DEFAULT_EMBEDDING_THRESHOLD)
-    parser.add_argument("--embedding-margin", type=float, default=DEFAULT_EMBEDDING_MARGIN)
-    parser.add_argument("--deterministic-threshold", type=float, default=DEFAULT_DETERMINISTIC_THRESHOLD)
-    parser.add_argument("--deterministic-margin", type=float, default=DEFAULT_DETERMINISTIC_MARGIN)
-    parser.add_argument("--device", choices=["cpu", "cuda"], default=None)
-    parser.add_argument("--batch-size", type=int, default=128)
-    args = parser.parse_args()
+    parser.add_argument(
+        "--deterministic-threshold",
+        type=float,
+        default=DEFAULT_DETERMINISTIC_THRESHOLD,
+    )
+    parser.add_argument(
+        "--deterministic-margin",
+        type=float,
+        default=DEFAULT_DETERMINISTIC_MARGIN,
+    )
 
+    # ---------------------------------------------------------------------
+    # NLP / SapBERT CLI options are intentionally disabled for now.
+    # ---------------------------------------------------------------------
+    # parser.add_argument("--embeddings", ...)
+    # parser.add_argument("--embedding-threshold", ...)
+    # parser.add_argument("--embedding-margin", ...)
+    # parser.add_argument("--device", ...)
+    # parser.add_argument("--batch-size", ...)
+
+    args = parser.parse_args()
     path = Path(args.dataset)
+
     if path.suffix.lower() == ".csv":
         df = pd.read_csv(path)
     elif path.suffix.lower() in {".xlsx", ".xls"}:
@@ -731,15 +638,12 @@ if __name__ == "__main__":
 
     engine = SemanticInferencer(
         ontology_path=args.ontology,
-        embedding_index_path=args.embeddings,
-        embedding_threshold=args.embedding_threshold,
-        embedding_margin=args.embedding_margin,
         deterministic_threshold=args.deterministic_threshold,
         deterministic_margin=args.deterministic_margin,
-        embedding_device=args.device,
-        embedding_batch_size=args.batch_size,
     )
+
     schema = engine.infer(df)
+
     print(schema.to_dataframe().to_string(index=False))
     print(f"\nKnown: {len(schema.known_columns())}")
     print(f"Unknown: {len(schema.unknown_columns())}")

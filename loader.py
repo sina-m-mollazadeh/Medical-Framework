@@ -4,7 +4,8 @@ import re
 from sklearn.preprocessing import LabelEncoder
 from Inference.semantic import SemanticInferencer
 semantic_inferencer = SemanticInferencer(
-    ontology_path="Inference/cvd_ontology.json"
+    ontology_path="Inference/cvd_ontology.json",
+    embedding_index_path="Inference/all_embed_ontology.json",
 )
 
 
@@ -126,39 +127,84 @@ def ConvertToNumeric(data, y_column):
     return data, all_mappings, y_mappings
 
 def sanitize_column_names(data, y_column):
-    data.columns = [
-        col if col == y_column else re.sub(r'[^\w]', '_', col)
-        for col in data.columns
-    ]
+
+    new_columns = []
+
+    for col in data.columns:
+
+        if col == y_column:
+            new_col = col
+        else:
+            # Remove digits
+            new_col = re.sub(r'\d+', '', str(col))
+
+            # Replace non-word characters with _
+            new_col = re.sub(r'[^\w]', '_', new_col)
+
+            # Collapse multiple underscores
+            new_col = re.sub(r'_+', '_', new_col)
+
+            # Remove leading/trailing underscores
+            new_col = new_col.strip('_')
+
+        new_columns.append(new_col)
+
+    # Make duplicate column names unique
+    counts = {}
+    unique_columns = []
+
+    for col in new_columns:
+
+        if col not in counts:
+            counts[col] = 0
+            unique_columns.append(col)
+        else:
+            counts[col] += 1
+            unique_columns.append(f"{col}_{counts[col]}")
+
+    data.columns = unique_columns
+
     return data
 
 def load_data(path, y_column):
     """Loads raw clinical vectors and extracts data arrays ready for train/test splitting."""
+    
     if "csv" in path:
-        data = pd.read_csv(path, sep=None, na_values=[" ", "", "NA", "NaN"])
+        data = pd.read_csv(
+            path,
+            sep=None,
+            na_values=[" ", "", "NA", "NaN"]
+        )
     elif "xlsx" in path:
-        data = pd.read_excel(path, na_values=[" ", "", "NA", "NaN"])
+        data = pd.read_excel(
+            path,
+            na_values=[" ", "", "NA", "NaN"]
+        )
     else:
         raise ValueError("File format not supported.")
-    
+    data = sanitize_column_names(data, y_column)
     semantic_schema = semantic_inferencer.infer(data)
-    
+
     print("Column Inference results")
 
-    for column_name, result in semantic_schema.colmns.items():
+    for column_name, result in semantic_schema.matches.items():
         print(
             f"{column_name!r:30} -> "
             f"{result.concept_id!r:25} "
             f"[{result.status}]"
         )
 
-    data = data.dropna(subset=[y_column])    
-    data = sanitize_column_names(data, y_column)
-    
-    data, all_mappings, y_mappings = ConvertToNumeric(data, y_column=y_column)
-    
+    data = data.dropna(subset=[y_column])
+    # data = sanitize_column_names(data, y_column)
+
+    data, all_mappings, y_mappings = ConvertToNumeric(
+        data,
+        y_column=y_column
+    )
+
     X = data.drop(columns=y_column)
+
     le = LabelEncoder()
     Y = le.fit_transform(data[y_column])
-    
+
     return X, Y, all_mappings, y_mappings
